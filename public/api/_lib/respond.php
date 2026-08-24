@@ -3,15 +3,38 @@
  * Tiny shared helpers for the gallery JSON API.
  */
 
+// Handle CORS preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Content-Type: application/json; charset=UTF-8');
+    http_response_code(200);
+    exit;
+}
+
 if (!function_exists('json_response')) {
     function json_response($data, int $code = 200): void {
         if (!headers_sent()) {
             http_response_code($code);
-            header('Content-Type: application/json; charset=utf-8');
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+            header('Content-Type: application/json; charset=UTF-8');
             header('X-Content-Type-Options: nosniff');
         }
         echo json_encode($data);
         exit;
+    }
+}
+
+if (!function_exists('jsonResponse')) {
+    function jsonResponse($status, $data = null, $message = '', $statusCode = 200) {
+        json_response([
+            'status' => $status,
+            'message' => $message,
+            'data' => $data
+        ], $statusCode);
     }
 }
 
