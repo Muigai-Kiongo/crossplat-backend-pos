@@ -1,0 +1,13 @@
+.git
+.gitignore
+.DS_Store
+__MACOSX
+*.zip
+public.zip
+pgdata
+.env
+.env.*
+*.log
+docker-compose*.yml
+.agents
+scratch
