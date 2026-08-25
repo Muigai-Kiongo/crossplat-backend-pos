@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS roles (
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- Upgrade an older roles table created before SaaS/POS permissions.
-ALTER TABLE roles ADD COLUMN scope VARCHAR(255) CHECK (scope IN ('platform','tenant')) NOT NULL DEFAULT 'tenant' AFTER role_name;
-ALTER TABLE roles ADD COLUMN capabilities JSON NULL AFTER scope;
+ALTER TABLE roles ADD COLUMN scope VARCHAR(255) CHECK (scope IN ('platform','tenant')) NOT NULL DEFAULT 'tenant';
+ALTER TABLE roles ADD COLUMN capabilities JSON NULL;
 
 -- Two role families share this table: the legacy CMS roles (superadmin/admin/
 -- user — gate the marketing-site admin panel by name in app/helpers/middleware.php)
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash       VARCHAR(255) NOT NULL,
     pin_hash            VARCHAR(255) NULL,         -- staff shared-terminal PIN login
     position            VARCHAR(100) NULL,
-    must_reset_password BOOLEAN NOT NULL DEFAULT 0,
+    must_reset_password BOOLEAN NOT NULL DEFAULT FALSE,
     role_id             INT NOT NULL,
     is_active           BOOLEAN DEFAULT TRUE,
     email_verified      BOOLEAN DEFAULT FALSE,
@@ -90,13 +90,13 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 -- Upgrade an older users table created before tenants/staff PIN login.
-ALTER TABLE users ADD COLUMN tenant_id INT NULL AFTER id;
-ALTER TABLE users ADD COLUMN pin_hash VARCHAR(255) NULL AFTER password_hash;
-ALTER TABLE users ADD COLUMN position VARCHAR(100) NULL AFTER pin_hash;
-ALTER TABLE users ADD COLUMN must_reset_password BOOLEAN NOT NULL DEFAULT 0 AFTER position;
-ALTER TABLE users ADD COLUMN activation_token VARCHAR(64) NULL AFTER email_verified;
-ALTER TABLE users ADD COLUMN activation_expires TIMESTAMP NULL AFTER activation_token;
-ALTER TABLE users ADD COLUMN activated_at TIMESTAMP NULL AFTER activation_expires;
+ALTER TABLE users ADD COLUMN tenant_id INT NULL;
+ALTER TABLE users ADD COLUMN pin_hash VARCHAR(255) NULL;
+ALTER TABLE users ADD COLUMN position VARCHAR(100) NULL;
+ALTER TABLE users ADD COLUMN must_reset_password BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN activation_token VARCHAR(64) NULL;
+ALTER TABLE users ADD COLUMN activation_expires TIMESTAMP NULL;
+ALTER TABLE users ADD COLUMN activated_at TIMESTAMP NULL;
 ALTER TABLE users ADD CONSTRAINT uq_users_tenant_email UNIQUE (tenant_id, email);
 ALTER TABLE users ADD KEY idx_users_tenant (tenant_id);
 ALTER TABLE users ADD KEY idx_users_activation (activation_token);
@@ -183,8 +183,8 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
     max_staff      INT NULL,                 -- NULL = unlimited
     max_products   INT NULL,                 -- NULL = unlimited
     features       JSON NULL,
-    is_active      BOOLEAN NOT NULL DEFAULT 1,
-    is_public      BOOLEAN NOT NULL DEFAULT 1,   -- shown on the marketing/pricing page
+    is_active      BOOLEAN NOT NULL DEFAULT TRUE,
+    is_public      BOOLEAN NOT NULL DEFAULT TRUE,   -- shown on the marketing/pricing page
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 -- KEY idx_plan_active (is_active)
 );
@@ -473,7 +473,7 @@ CREATE TABLE IF NOT EXISTS hero_slides (
     image_path  VARCHAR(255) NOT NULL,
     caption     VARCHAR(255) NULL,
     sort_order  INT NOT NULL DEFAULT 0,
-    is_active   BOOLEAN NOT NULL DEFAULT 1,
+    is_active   BOOLEAN NOT NULL DEFAULT TRUE,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 -- INDEX idx_hero_active_order (is_active, sort_order)
 );
@@ -614,8 +614,8 @@ CREATE TABLE IF NOT EXISTS categories (
 -- KEY idx_cat_tenant (tenant_id)
 );
 -- Upgrade categories created before stationery categories existed.
-ALTER TABLE categories ADD COLUMN type VARCHAR(255) CHECK (type IN ('subject','stationery')) NOT NULL DEFAULT 'subject' AFTER name;
-ALTER TABLE categories ADD COLUMN image_path VARCHAR(255) NULL AFTER type;
+ALTER TABLE categories ADD COLUMN type VARCHAR(255) CHECK (type IN ('subject','stationery')) NOT NULL DEFAULT 'subject';
+ALTER TABLE categories ADD COLUMN image_path VARCHAR(255) NULL;
 ALTER TABLE categories DROP INDEX uq_cat_tenant_name;
 ALTER TABLE categories ADD CONSTRAINT uq_cat_tenant_type_name UNIQUE (tenant_id, type, name);
 CREATE TABLE IF NOT EXISTS subcategories (
@@ -695,33 +695,33 @@ ALTER TABLE products DROP FOREIGN KEY products_ibfk_1;
 ALTER TABLE products DROP FOREIGN KEY products_ibfk_2;
 ALTER TABLE products MODIFY slug VARCHAR(255) NULL;
 ALTER TABLE products MODIFY price DECIMAL(10,2) NULL;
-ALTER TABLE products ADD COLUMN tenant_id INT NOT NULL DEFAULT 0 AFTER id;
-ALTER TABLE products ADD COLUMN product_type VARCHAR(255) CHECK (product_type IN ('book','stationery')) NOT NULL DEFAULT 'book' AFTER tenant_id;
-ALTER TABLE products ADD COLUMN subcategory_id INT NULL AFTER category_id;
-ALTER TABLE products ADD COLUMN grade_id INT NULL AFTER subcategory_id;
-ALTER TABLE products ADD COLUMN publisher_id INT NULL AFTER grade_id;
-ALTER TABLE products ADD COLUMN author_id INT NULL AFTER publisher_id;
-ALTER TABLE products ADD COLUMN edition_id INT NULL AFTER author_id;
-ALTER TABLE products ADD COLUMN brand_id INT NULL AFTER edition_id;
-ALTER TABLE products ADD COLUMN barcode VARCHAR(64) NULL AFTER brand_id;
-ALTER TABLE products ADD COLUMN supplier_id INT NULL AFTER barcode;
-ALTER TABLE products ADD COLUMN quantity DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER description;
-ALTER TABLE products ADD COLUMN unit VARCHAR(20) NOT NULL DEFAULT 'piece' AFTER quantity;
-ALTER TABLE products ADD COLUMN size_value DECIMAL(10,2) NULL AFTER unit;
-ALTER TABLE products ADD COLUMN size_unit VARCHAR(255) CHECK (size_unit IN ('ml','l')) NULL AFTER size_value;
-ALTER TABLE products ADD COLUMN buying_price DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER size_unit;
-ALTER TABLE products ADD COLUMN selling_price DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER buying_price;
-ALTER TABLE products ADD COLUMN wholesale_price DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER selling_price;
-ALTER TABLE products ADD COLUMN retail_price DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER wholesale_price;
-ALTER TABLE products ADD COLUMN offer_price DECIMAL(12,2) NULL AFTER retail_price;
-ALTER TABLE products ADD COLUMN offer_starts_at TIMESTAMP NULL AFTER offer_price;
-ALTER TABLE products ADD COLUMN offer_ends_at TIMESTAMP NULL AFTER offer_starts_at;
-ALTER TABLE products ADD COLUMN colors JSON NULL AFTER offer_ends_at;
-ALTER TABLE products ADD COLUMN sizes JSON NULL AFTER colors;
-ALTER TABLE products ADD COLUMN image_path VARCHAR(255) NULL AFTER sizes;
-ALTER TABLE products ADD COLUMN low_stock_threshold INT NOT NULL DEFAULT 10 AFTER image_path;
-ALTER TABLE products ADD COLUMN credit_limit DECIMAL(12,2) NULL AFTER low_stock_threshold;
-ALTER TABLE products ADD COLUMN low_stock_notified_at TIMESTAMP NULL AFTER low_stock_threshold;
+ALTER TABLE products ADD COLUMN tenant_id INT NOT NULL DEFAULT 0;
+ALTER TABLE products ADD COLUMN product_type VARCHAR(255) CHECK (product_type IN ('book','stationery')) NOT NULL DEFAULT 'book';
+ALTER TABLE products ADD COLUMN subcategory_id INT NULL;
+ALTER TABLE products ADD COLUMN grade_id INT NULL;
+ALTER TABLE products ADD COLUMN publisher_id INT NULL;
+ALTER TABLE products ADD COLUMN author_id INT NULL;
+ALTER TABLE products ADD COLUMN edition_id INT NULL;
+ALTER TABLE products ADD COLUMN brand_id INT NULL;
+ALTER TABLE products ADD COLUMN barcode VARCHAR(64) NULL;
+ALTER TABLE products ADD COLUMN supplier_id INT NULL;
+ALTER TABLE products ADD COLUMN quantity DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE products ADD COLUMN unit VARCHAR(20) NOT NULL DEFAULT 'piece';
+ALTER TABLE products ADD COLUMN size_value DECIMAL(10,2) NULL;
+ALTER TABLE products ADD COLUMN size_unit VARCHAR(255) CHECK (size_unit IN ('ml','l')) NULL;
+ALTER TABLE products ADD COLUMN buying_price DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE products ADD COLUMN selling_price DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE products ADD COLUMN wholesale_price DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE products ADD COLUMN retail_price DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE products ADD COLUMN offer_price DECIMAL(12,2) NULL;
+ALTER TABLE products ADD COLUMN offer_starts_at TIMESTAMP NULL;
+ALTER TABLE products ADD COLUMN offer_ends_at TIMESTAMP NULL;
+ALTER TABLE products ADD COLUMN colors JSON NULL;
+ALTER TABLE products ADD COLUMN sizes JSON NULL;
+ALTER TABLE products ADD COLUMN image_path VARCHAR(255) NULL;
+ALTER TABLE products ADD COLUMN low_stock_threshold INT NOT NULL DEFAULT 10;
+ALTER TABLE products ADD COLUMN credit_limit DECIMAL(12,2) NULL;
+ALTER TABLE products ADD COLUMN low_stock_notified_at TIMESTAMP NULL;
 UPDATE products SET status = 'draft' WHERE status = 'inactive';
 ALTER TABLE products MODIFY status VARCHAR(255) CHECK (status IN ('active','draft','archived')) NOT NULL DEFAULT 'active';
 ALTER TABLE products ADD KEY idx_prod_tenant (tenant_id);
@@ -746,7 +746,7 @@ CREATE TABLE IF NOT EXISTS stock_intakes (
 -- KEY idx_intake_supplier (supplier_id)
 );
 ALTER TABLE stock_intakes MODIFY supplier_id INT NULL;
-ALTER TABLE stock_intakes ADD COLUMN notes VARCHAR(255) NULL AFTER staff_id;
+ALTER TABLE stock_intakes ADD COLUMN notes VARCHAR(255) NULL;
 
 -- Line items of a delivery — kept for history even if the product is later
 -- edited/deleted.
@@ -764,7 +764,7 @@ CREATE TABLE IF NOT EXISTS stock_intake_items (
 -- KEY idx_intakeitem_tenant (tenant_id)
 -- KEY idx_intakeitem_product (product_id)
 );
-ALTER TABLE stock_intake_items ADD COLUMN remark VARCHAR(255) NULL AFTER buying_price;
+ALTER TABLE stock_intake_items ADD COLUMN remark VARCHAR(255) NULL;
 
 -- =============================================================================
 -- SECTION 5 — POS: direct sales (with credit/split payments), bar-tab style
@@ -799,17 +799,17 @@ CREATE TABLE IF NOT EXISTS sales (
 -- KEY idx_sale_staff (staff_id)
 -- KEY idx_sale_created (tenant_id, created_at)
 );
-ALTER TABLE sales ADD COLUMN sale_type VARCHAR(255) CHECK (sale_type IN ('retail','wholesale')) NOT NULL DEFAULT 'retail' AFTER staff_id;
-ALTER TABLE sales ADD COLUMN mpesa_channel VARCHAR(10) NULL AFTER payment_method;
-ALTER TABLE sales ADD COLUMN subtotal DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER total;
-ALTER TABLE sales ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER subtotal;
-ALTER TABLE sales ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER discount_amount;
-ALTER TABLE sales ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER amount_paid;
-ALTER TABLE sales ADD COLUMN cash_amount DECIMAL(12,2) NULL AFTER change_given;
-ALTER TABLE sales ADD COLUMN mpesa_amount DECIMAL(12,2) NULL AFTER cash_amount;
-ALTER TABLE sales ADD COLUMN customer_phone VARCHAR(30) NULL AFTER customer_name;
-ALTER TABLE sales ADD COLUMN customer_email VARCHAR(255) NULL AFTER customer_phone;
-ALTER TABLE sales ADD COLUMN payment_status VARCHAR(255) CHECK (payment_status IN ('pending','paid','part_paid','credit','failed')) NOT NULL DEFAULT 'paid' AFTER status;
+ALTER TABLE sales ADD COLUMN sale_type VARCHAR(255) CHECK (sale_type IN ('retail','wholesale')) NOT NULL DEFAULT 'retail';
+ALTER TABLE sales ADD COLUMN mpesa_channel VARCHAR(10) NULL;
+ALTER TABLE sales ADD COLUMN subtotal DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE sales ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE sales ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE sales ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE sales ADD COLUMN cash_amount DECIMAL(12,2) NULL;
+ALTER TABLE sales ADD COLUMN mpesa_amount DECIMAL(12,2) NULL;
+ALTER TABLE sales ADD COLUMN customer_phone VARCHAR(30) NULL;
+ALTER TABLE sales ADD COLUMN customer_email VARCHAR(255) NULL;
+ALTER TABLE sales ADD COLUMN payment_status VARCHAR(255) CHECK (payment_status IN ('pending','paid','part_paid','credit','failed')) NOT NULL DEFAULT 'paid';
 ALTER TABLE sales ADD KEY idx_sale_created (tenant_id, created_at);
 CREATE TABLE IF NOT EXISTS sale_items (
     id           SERIAL PRIMARY KEY,
@@ -826,8 +826,8 @@ CREATE TABLE IF NOT EXISTS sale_items (
 -- KEY idx_item_sale (sale_id)
 -- KEY idx_item_tenant (tenant_id)
 );
-ALTER TABLE sale_items ADD COLUMN price_type VARCHAR(255) CHECK (price_type IN ('retail','wholesale')) NOT NULL DEFAULT 'retail' AFTER unit_price;
-ALTER TABLE sale_items ADD COLUMN unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER price_type;
+ALTER TABLE sale_items ADD COLUMN price_type VARCHAR(255) CHECK (price_type IN ('retail','wholesale')) NOT NULL DEFAULT 'retail';
+ALTER TABLE sale_items ADD COLUMN unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0;
 
 -- Installment payments against a credit/part-paid sale.
 CREATE TABLE IF NOT EXISTS sale_payments (
@@ -879,19 +879,19 @@ CREATE TABLE IF NOT EXISTS orders (
 -- KEY idx_order_tenant (tenant_id)
 -- KEY idx_order_status (tenant_id, status)
 );
-ALTER TABLE orders ADD COLUMN customer_phone VARCHAR(30) NULL AFTER table_name;
-ALTER TABLE orders ADD COLUMN customer_email VARCHAR(255) NULL AFTER customer_phone;
-ALTER TABLE orders ADD COLUMN channel VARCHAR(255) CHECK (channel IN ('walkin','tab')) NOT NULL DEFAULT 'tab' AFTER customer_email;
-ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER subtotal;
+ALTER TABLE orders ADD COLUMN customer_phone VARCHAR(30) NULL;
+ALTER TABLE orders ADD COLUMN customer_email VARCHAR(255) NULL;
+ALTER TABLE orders ADD COLUMN channel VARCHAR(255) CHECK (channel IN ('walkin','tab')) NOT NULL DEFAULT 'tab';
+ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0;
 ALTER TABLE orders MODIFY COLUMN payment_method VARCHAR(255) CHECK (payment_method IN ('cash','mpesa','split','card','bank','sacco','credit')) DEFAULT NULL;
-ALTER TABLE orders ADD COLUMN payment_status VARCHAR(20) NOT NULL DEFAULT 'credit' AFTER payment_method;
-ALTER TABLE orders ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total;
-ALTER TABLE orders ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER amount_paid;
-ALTER TABLE orders ADD COLUMN payment_provider VARCHAR(100) NULL AFTER payment_method;
-ALTER TABLE orders ADD COLUMN payment_account_name VARCHAR(160) NULL AFTER payment_provider;
-ALTER TABLE orders ADD COLUMN payment_reference VARCHAR(120) NULL AFTER payment_account_name;
-ALTER TABLE orders ADD COLUMN invoice_sent_at TIMESTAMP NULL AFTER updated_at;
-ALTER TABLE orders ADD COLUMN delivery_note_sent_at TIMESTAMP NULL AFTER invoice_sent_at;
+ALTER TABLE orders ADD COLUMN payment_status VARCHAR(20) NOT NULL DEFAULT 'credit';
+ALTER TABLE orders ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0.00;
+ALTER TABLE orders ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0.00;
+ALTER TABLE orders ADD COLUMN payment_provider VARCHAR(100) NULL;
+ALTER TABLE orders ADD COLUMN payment_account_name VARCHAR(160) NULL;
+ALTER TABLE orders ADD COLUMN payment_reference VARCHAR(120) NULL;
+ALTER TABLE orders ADD COLUMN invoice_sent_at TIMESTAMP NULL;
+ALTER TABLE orders ADD COLUMN delivery_note_sent_at TIMESTAMP NULL;
 
 UPDATE orders
    SET amount_paid = CASE WHEN status = 'paid' THEN total ELSE COALESCE(amount_paid, 0) END,
@@ -954,8 +954,8 @@ CREATE TABLE IF NOT EXISTS product_returns (
 -- KEY idx_returns_item (tenant_id, source_type, source_item_id)
 -- KEY idx_returns_product (tenant_id, product_id)
 );
-ALTER TABLE product_returns ADD COLUMN migrated_at TIMESTAMP NULL AFTER processed_by;
-ALTER TABLE product_returns ADD COLUMN migrated_by INT NULL AFTER migrated_at;
+ALTER TABLE product_returns ADD COLUMN migrated_at TIMESTAMP NULL;
+ALTER TABLE product_returns ADD COLUMN migrated_by INT NULL;
 
 -- "Hold Order": a cart set aside before it becomes a real sale/tab. Holding
 -- does NOT touch stock — nothing is committed until it's resumed.
@@ -986,13 +986,13 @@ CREATE TABLE IF NOT EXISTS staff_time_logs (
     user_id      INT NOT NULL,
     clock_in_at  TIMESTAMP NOT NULL,
     clock_out_at TIMESTAMP NULL,
-    auto_closed  BOOLEAN NOT NULL DEFAULT 0,
+    auto_closed  BOOLEAN NOT NULL DEFAULT FALSE,
     created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 -- KEY idx_timelog_tenant (tenant_id)
 -- KEY idx_timelog_user_time (user_id, clock_in_at)
 -- KEY idx_timelog_open (user_id, clock_out_at)
 );
-ALTER TABLE staff_time_logs ADD COLUMN auto_closed BOOLEAN NOT NULL DEFAULT 0 AFTER clock_out_at;
+ALTER TABLE staff_time_logs ADD COLUMN auto_closed BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS staff_reclock_authorizations (
     id            SERIAL PRIMARY KEY,
