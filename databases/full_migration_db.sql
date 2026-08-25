@@ -83,12 +83,12 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT username UNIQUE (username),
     CONSTRAINT email UNIQUE (email),
     CONSTRAINT uq_users_tenant_email UNIQUE (tenant_id, email),
--- KEY idx_email (email)
--- KEY idx_username (username)
--- KEY idx_users_tenant (tenant_id)
--- KEY idx_users_activation (activation_token)
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
 );
+CREATE INDEX idx_email ON users (email);
+CREATE INDEX idx_username ON users (username);
+CREATE INDEX idx_users_tenant ON users (tenant_id);
+CREATE INDEX idx_users_activation ON users (activation_token);
 -- Upgrade an older users table created before tenants/staff PIN login.
 ALTER TABLE users ADD COLUMN tenant_id INT NULL;
 ALTER TABLE users ADD COLUMN pin_hash VARCHAR(255) NULL;
@@ -103,7 +103,7 @@ ALTER TABLE users ADD KEY idx_users_activation (activation_token);
 -- Default platform super admin for the CMS admin panel (email: admin@ismano.com,
 -- password: Admin123!). Change this password immediately after first login.
 INSERT INTO users (username, email, password_hash, role_id, is_active, email_verified)
-VALUES ('superadmin', 'admin@ismano.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, 1, 1)
+VALUES ('superadmin', 'admin@ismano.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, TRUE, TRUE)
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS user_profiles (
@@ -119,9 +119,9 @@ CREATE TABLE IF NOT EXISTS login_attempts (
     id           SERIAL PRIMARY KEY,
     email        VARCHAR(100),
     ip_address   VARCHAR(45),
-    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
--- INDEX idx_email_time (email, attempt_time)
+    attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_email_time ON login_attempts (email, attempt_time);
 -- Email OTP codes for mandatory 2FA on every login.
 CREATE TABLE IF NOT EXISTS login_otps (
     id           SERIAL PRIMARY KEY,
@@ -134,10 +134,10 @@ CREATE TABLE IF NOT EXISTS login_otps (
     expires_at   TIMESTAMP     NOT NULL,
     consumed_at  TIMESTAMP     NULL,
     ip           VARCHAR(45)  NULL,
-    created_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_otp_user_purpose (user_id, purpose)
--- KEY idx_otp_expires (expires_at)
+    created_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_otp_user_purpose ON login_otps (user_id, purpose);
+CREATE INDEX idx_otp_expires ON login_otps (expires_at);
 -- Per-user capability overrides on top of the role defaults above.
 CREATE TABLE IF NOT EXISTS user_permissions (
     id          SERIAL PRIMARY KEY,
@@ -146,9 +146,9 @@ CREATE TABLE IF NOT EXISTS user_permissions (
     capability  VARCHAR(64) NOT NULL,
     effect      VARCHAR(255) CHECK (effect IN ('grant','revoke')) NOT NULL DEFAULT 'grant',
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_user_cap UNIQUE (user_id, capability),
--- KEY idx_perm_tenant (tenant_id)
+    CONSTRAINT uq_user_cap UNIQUE (user_id, capability)
 );
+CREATE INDEX idx_perm_tenant ON user_permissions (tenant_id);
 -- =============================================================================
 -- SECTION 2 — Multi-tenant SaaS: tenants (shops) & subscriptions
 -- =============================================================================
@@ -170,9 +170,9 @@ CREATE TABLE IF NOT EXISTS tenants (
     payment_credentials TEXT NULL,
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT uq_tenant_slug UNIQUE (slug),
--- KEY idx_tenant_status (status)
+    CONSTRAINT uq_tenant_slug UNIQUE (slug)
 );
+CREATE INDEX idx_tenant_status ON tenants (status);
 CREATE TABLE IF NOT EXISTS subscription_plans (
     id             SERIAL PRIMARY KEY,
     name           VARCHAR(100) NOT NULL,
@@ -185,9 +185,9 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
     features       JSON NULL,
     is_active      BOOLEAN NOT NULL DEFAULT TRUE,
     is_public      BOOLEAN NOT NULL DEFAULT TRUE,   -- shown on the marketing/pricing page
-    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_plan_active (is_active)
+    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_plan_active ON subscription_plans (is_active);
 -- Single production plan at the real prices. Add more rows here if you want
 -- tiered plans; the registration flow lists every is_public=1 row.
 INSERT INTO subscription_plans (name, description, price_weekly, price_biweekly, price_monthly, max_staff, max_products, is_active, is_public)
@@ -195,7 +195,7 @@ SELECT * FROM (
     SELECT 'Standard' AS name,
            'Everything you need to run your shop' AS description,
            250.00 AS price_weekly, 500.00 AS price_biweekly, 1000.00 AS price_monthly,
-           3 AS max_staff, 200 AS max_products, 1 AS is_active, 1 AS is_public
+           3 AS max_staff, 200 AS max_products, TRUE AS is_active, TRUE AS is_public
 ) AS t
 WHERE NOT EXISTS (SELECT 1 FROM subscription_plans WHERE name = 'Standard');
 CREATE TABLE IF NOT EXISTS subscriptions (
@@ -209,11 +209,11 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     current_period_end   TIMESTAMP NULL,
     grace_until          TIMESTAMP NULL,
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
--- KEY idx_sub_tenant (tenant_id)
--- KEY idx_sub_status (status)
--- KEY idx_sub_period_end (current_period_end)
+    updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP 
 );
+CREATE INDEX idx_sub_tenant ON subscriptions (tenant_id);
+CREATE INDEX idx_sub_status ON subscriptions (status);
+CREATE INDEX idx_sub_period_end ON subscriptions (current_period_end);
 -- Tracks each M-Pesa STK push for a subscription payment.
 CREATE TABLE IF NOT EXISTS subscription_stk (
     id                  SERIAL PRIMARY KEY,
@@ -231,11 +231,11 @@ CREATE TABLE IF NOT EXISTS subscription_stk (
     result_desc         VARCHAR(191) NULL,
     mpesa_receipt       VARCHAR(32) NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
--- KEY idx_stk_checkout (checkout_request_id)
--- KEY idx_stk_tenant (tenant_id)
--- KEY idx_stk_status (status)
+    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP 
 );
+CREATE INDEX idx_stk_checkout ON subscription_stk (checkout_request_id);
+CREATE INDEX idx_stk_tenant ON subscription_stk (tenant_id);
+CREATE INDEX idx_stk_status ON subscription_stk (status);
 -- =============================================================================
 -- SECTION 3 — Marketing / CMS site: projects, services, blog, gallery,
 -- site settings, enquiries, testimonials
@@ -249,9 +249,9 @@ CREATE TABLE IF NOT EXISTS project_categories (
     created_by            INT,
     created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT fk_projcat_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
--- INDEX idx_slug (category_slug)
+    CONSTRAINT fk_projcat_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_slug ON project_categories (category_slug);
 INSERT INTO project_categories (category_name, category_slug, category_description) VALUES
 ('Web Development', 'web-development', 'Web development projects including websites and web applications'),
 ('Mobile Apps', 'mobile-apps', 'Mobile application development projects'),
@@ -274,11 +274,11 @@ CREATE TABLE IF NOT EXISTS projects (
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
     CONSTRAINT fk_proj_cat  FOREIGN KEY (category_id) REFERENCES project_categories(id) ON DELETE CASCADE,
-    CONSTRAINT fk_proj_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
--- INDEX idx_category (category_id)
--- INDEX idx_status (status)
--- INDEX idx_slug (project_slug)
+    CONSTRAINT fk_proj_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_category ON projects (category_id);
+CREATE INDEX idx_status ON projects (status);
+CREATE INDEX idx_slug ON projects (project_slug);
 CREATE TABLE IF NOT EXISTS project_gallery (
     id                 SERIAL PRIMARY KEY,
     project_id         INT NOT NULL,
@@ -287,10 +287,10 @@ CREATE TABLE IF NOT EXISTS project_gallery (
     image_description  TEXT,
     sort_order         INT DEFAULT 0,
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_projgal_proj FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
--- INDEX idx_project (project_id)
--- INDEX idx_sort (sort_order)
+    CONSTRAINT fk_projgal_proj FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_project ON project_gallery (project_id);
+CREATE INDEX idx_sort ON project_gallery (sort_order);
 CREATE TABLE IF NOT EXISTS project_videos (
     id                SERIAL PRIMARY KEY,
     project_id        INT NOT NULL,
@@ -300,9 +300,9 @@ CREATE TABLE IF NOT EXISTS project_videos (
     video_type        VARCHAR(255) CHECK (video_type IN ('youtube', 'vimeo', 'local', 'other')) DEFAULT 'youtube',
     sort_order        INT DEFAULT 0,
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_projvid_proj FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
--- INDEX idx_project (project_id)
+    CONSTRAINT fk_projvid_proj FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_project ON project_videos (project_id);
 CREATE TABLE IF NOT EXISTS project_tags (
     id         SERIAL PRIMARY KEY,
     tag_name   VARCHAR(50) NOT NULL UNIQUE,
@@ -327,11 +327,11 @@ CREATE TABLE IF NOT EXISTS services (
     created_by         INT,
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT fk_service_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
--- INDEX idx_status (status)
--- INDEX idx_slug (slug)
--- INDEX idx_created_by (created_by)
+    CONSTRAINT fk_service_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_status ON services (status);
+CREATE INDEX idx_slug ON services (slug);
+CREATE INDEX idx_created_by ON services (created_by);
 CREATE TABLE IF NOT EXISTS service_sections (
     id           SERIAL PRIMARY KEY,
     service_id   INT NOT NULL,
@@ -342,10 +342,10 @@ CREATE TABLE IF NOT EXISTS service_sections (
     media_type   VARCHAR(255) CHECK (media_type IN ('image', 'video', 'youtube', 'vimeo')) DEFAULT 'image',
     sort_order   INT DEFAULT 0,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_svcsec_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
--- INDEX idx_service (service_id)
--- INDEX idx_sort (sort_order)
+    CONSTRAINT fk_svcsec_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_service ON service_sections (service_id);
+CREATE INDEX idx_sort ON service_sections (sort_order);
 CREATE TABLE IF NOT EXISTS service_gallery (
     id                 SERIAL PRIMARY KEY,
     service_id         INT NOT NULL,
@@ -354,10 +354,10 @@ CREATE TABLE IF NOT EXISTS service_gallery (
     image_description  TEXT,
     sort_order         INT DEFAULT 0,
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_svcgal_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
--- INDEX idx_service (service_id)
--- INDEX idx_sort (sort_order)
+    CONSTRAINT fk_svcgal_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_service ON service_gallery (service_id);
+CREATE INDEX idx_sort ON service_gallery (sort_order);
 CREATE TABLE IF NOT EXISTS service_benefits (
     id                    SERIAL PRIMARY KEY,
     service_id            INT NOT NULL,
@@ -366,9 +366,9 @@ CREATE TABLE IF NOT EXISTS service_benefits (
     icon_class            VARCHAR(100),
     sort_order            INT DEFAULT 0,
     created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_svcben_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
--- INDEX idx_service (service_id)
+    CONSTRAINT fk_svcben_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_service ON service_benefits (service_id);
 CREATE TABLE IF NOT EXISTS service_faqs (
     id          SERIAL PRIMARY KEY,
     service_id  INT NOT NULL,
@@ -377,9 +377,9 @@ CREATE TABLE IF NOT EXISTS service_faqs (
     sort_order  INT DEFAULT 0,
     is_active   BOOLEAN DEFAULT TRUE,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_svcfaq_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
--- INDEX idx_service (service_id)
+    CONSTRAINT fk_svcfaq_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_service ON service_faqs (service_id);
 CREATE TABLE IF NOT EXISTS blog_categories (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(100) NOT NULL,
@@ -388,9 +388,9 @@ CREATE TABLE IF NOT EXISTS blog_categories (
     color       VARCHAR(20) DEFAULT '#667eea',
     created_by  INT,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_blogcat_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
--- INDEX idx_slug (slug)
+    CONSTRAINT fk_blogcat_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_slug ON blog_categories (slug);
 CREATE TABLE IF NOT EXISTS blogs (
     id                SERIAL PRIMARY KEY,
     title             VARCHAR(255) NOT NULL,
@@ -410,14 +410,14 @@ CREATE TABLE IF NOT EXISTS blogs (
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
     CONSTRAINT fk_blog_cat  FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE SET NULL,
-    CONSTRAINT fk_blog_user FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
--- INDEX idx_status (status)
--- INDEX idx_slug (slug)
--- INDEX idx_author (author_id)
--- INDEX idx_category (category_id)
--- INDEX idx_published (published_at)
--- INDEX idx_featured (is_featured)
+    CONSTRAINT fk_blog_user FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_status ON blogs (status);
+CREATE INDEX idx_slug ON blogs (slug);
+CREATE INDEX idx_author ON blogs (author_id);
+CREATE INDEX idx_category ON blogs (category_id);
+CREATE INDEX idx_published ON blogs (published_at);
+CREATE INDEX idx_featured ON blogs (is_featured);
 CREATE TABLE IF NOT EXISTS blog_sections (
     id           SERIAL PRIMARY KEY,
     blog_id      INT NOT NULL,
@@ -429,10 +429,10 @@ CREATE TABLE IF NOT EXISTS blog_sections (
     video_id     VARCHAR(100),
     sort_order   INT DEFAULT 0,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_blogsec_blog FOREIGN KEY (blog_id) REFERENCES blogs(id) ON DELETE CASCADE,
--- INDEX idx_blog (blog_id)
--- INDEX idx_sort (sort_order)
+    CONSTRAINT fk_blogsec_blog FOREIGN KEY (blog_id) REFERENCES blogs(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_blog ON blog_sections (blog_id);
+CREATE INDEX idx_sort ON blog_sections (sort_order);
 CREATE TABLE IF NOT EXISTS blog_faqs (
     id         SERIAL PRIMARY KEY,
     blog_id    INT NOT NULL,
@@ -441,9 +441,9 @@ CREATE TABLE IF NOT EXISTS blog_faqs (
     sort_order INT DEFAULT 0,
     is_active  BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_blogfaq_blog FOREIGN KEY (blog_id) REFERENCES blogs(id) ON DELETE CASCADE,
--- INDEX idx_blog (blog_id)
+    CONSTRAINT fk_blogfaq_blog FOREIGN KEY (blog_id) REFERENCES blogs(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_blog ON blog_faqs (blog_id);
 CREATE TABLE IF NOT EXISTS blog_tags (
     id         SERIAL PRIMARY KEY,
     name       VARCHAR(50) NOT NULL UNIQUE,
@@ -469,16 +469,16 @@ INSERT INTO site_settings (setting_key, setting_value) VALUES
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS hero_slides (
-    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     image_path  VARCHAR(255) NOT NULL,
     caption     VARCHAR(255) NULL,
     sort_order  INT NOT NULL DEFAULT 0,
     is_active   BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- INDEX idx_hero_active_order (is_active, sort_order)
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_hero_active_order ON hero_slides (is_active, sort_order);
 CREATE TABLE IF NOT EXISTS page_headers (
-    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     page_key    VARCHAR(60)  NOT NULL UNIQUE,
     title       VARCHAR(150) NULL,
     subtitle    VARCHAR(255) NULL,
@@ -510,11 +510,11 @@ CREATE TABLE IF NOT EXISTS gallery (
     created_by        INT,
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT fk_gallery_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
--- INDEX idx_status (status)
--- INDEX idx_media_type (media_type)
--- INDEX idx_sort (sort_order)
+    CONSTRAINT fk_gallery_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_status ON gallery (status);
+CREATE INDEX idx_media_type ON gallery (media_type);
+CREATE INDEX idx_sort ON gallery (sort_order);
 CREATE TABLE IF NOT EXISTS gallery_categories (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(100) NOT NULL,
@@ -536,11 +536,11 @@ CREATE TABLE IF NOT EXISTS enquiries (
     closed_at     TIMESTAMP NULL,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
--- INDEX idx_status (status)
--- INDEX idx_email (email)
--- INDEX idx_created (created_at)
     FULLTEXT INDEX idx_search (name, email, message)
 );
+CREATE INDEX idx_status ON enquiries (status);
+CREATE INDEX idx_email ON enquiries (email);
+CREATE INDEX idx_created ON enquiries (created_at);
 CREATE TABLE IF NOT EXISTS enquiry_replies (
     id          SERIAL PRIMARY KEY,
     enquiry_id  INT NOT NULL,
@@ -548,9 +548,9 @@ CREATE TABLE IF NOT EXISTS enquiry_replies (
     reply       TEXT NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_enqreply_enq   FOREIGN KEY (enquiry_id) REFERENCES enquiries(id) ON DELETE CASCADE,
-    CONSTRAINT fk_enqreply_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE,
--- INDEX idx_enquiry (enquiry_id)
+    CONSTRAINT fk_enqreply_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_enquiry ON enquiry_replies (enquiry_id);
 CREATE TABLE IF NOT EXISTS testimonials (
     id                 SERIAL PRIMARY KEY,
     customer_name      VARCHAR(100) NOT NULL,
@@ -566,12 +566,12 @@ CREATE TABLE IF NOT EXISTS testimonials (
     sort_order         INT DEFAULT 0,
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
-    approved_at        TIMESTAMP NULL,
--- INDEX idx_status (status)
--- INDEX idx_rating (rating)
--- INDEX idx_featured (is_featured)
--- INDEX idx_sort (sort_order)
+    approved_at        TIMESTAMP NULL
 );
+CREATE INDEX idx_status ON testimonials (status);
+CREATE INDEX idx_rating ON testimonials (rating);
+CREATE INDEX idx_featured ON testimonials (is_featured);
+CREATE INDEX idx_sort ON testimonials (sort_order);
 -- testimonials has no natural unique key (it's free-text customer quotes), so
 -- each seed row is guarded individually by customer_name to stay idempotent
 -- on a re-run instead of relying on ON CONFLICT DO NOTHING;
@@ -598,9 +598,9 @@ CREATE TABLE IF NOT EXISTS suppliers (
     notes      VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT uq_supplier_tenant_name UNIQUE (tenant_id, name),
--- KEY idx_supplier_tenant (tenant_id)
+    CONSTRAINT uq_supplier_tenant_name UNIQUE (tenant_id, name)
 );
+CREATE INDEX idx_supplier_tenant ON suppliers (tenant_id);
 CREATE TABLE IF NOT EXISTS categories (
     id         SERIAL PRIMARY KEY,
     tenant_id  INT NOT NULL,
@@ -610,9 +610,9 @@ CREATE TABLE IF NOT EXISTS categories (
     status     VARCHAR(255) CHECK (status IN ('active','draft')) NOT NULL DEFAULT 'active',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT uq_cat_tenant_type_name UNIQUE (tenant_id, type, name),
--- KEY idx_cat_tenant (tenant_id)
+    CONSTRAINT uq_cat_tenant_type_name UNIQUE (tenant_id, type, name)
 );
+CREATE INDEX idx_cat_tenant ON categories (tenant_id);
 -- Upgrade categories created before stationery categories existed.
 ALTER TABLE categories ADD COLUMN type VARCHAR(255) CHECK (type IN ('subject','stationery')) NOT NULL DEFAULT 'subject';
 ALTER TABLE categories ADD COLUMN image_path VARCHAR(255) NULL;
@@ -626,10 +626,10 @@ CREATE TABLE IF NOT EXISTS subcategories (
     status      VARCHAR(255) CHECK (status IN ('active','draft')) NOT NULL DEFAULT 'active',
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT uq_subcat_tenant_cat_name UNIQUE (tenant_id, category_id, name),
--- KEY idx_subcat_tenant (tenant_id)
--- KEY idx_subcat_cat (category_id)
+    CONSTRAINT uq_subcat_tenant_cat_name UNIQUE (tenant_id, category_id, name)
 );
+CREATE INDEX idx_subcat_tenant ON subcategories (tenant_id);
+CREATE INDEX idx_subcat_cat ON subcategories (category_id);
 -- Small tenant-scoped lookup values shared across books/stationery:
 -- Grade/Class, Publisher, Author, Edition, Brand.
 CREATE TABLE IF NOT EXISTS book_attributes (
@@ -639,9 +639,9 @@ CREATE TABLE IF NOT EXISTS book_attributes (
     name       VARCHAR(160) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-    CONSTRAINT uq_attr_tenant_type_name UNIQUE (tenant_id, type, name),
--- KEY idx_attr_tenant_type (tenant_id, type)
+    CONSTRAINT uq_attr_tenant_type_name UNIQUE (tenant_id, type, name)
 );
+CREATE INDEX idx_attr_tenant_type ON book_attributes (tenant_id, type);
 CREATE TABLE IF NOT EXISTS products (
     id                     SERIAL PRIMARY KEY,
     tenant_id              INT NOT NULL,
@@ -677,19 +677,19 @@ CREATE TABLE IF NOT EXISTS products (
     status                 VARCHAR(255) CHECK (status IN ('active','draft','archived')) NOT NULL DEFAULT 'active',
     created_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
--- KEY idx_prod_tenant (tenant_id)
--- KEY idx_prod_cat (category_id)
--- KEY idx_prod_subcat (subcategory_id)
--- KEY idx_prod_supplier (supplier_id)
--- KEY idx_prod_status (status)
--- KEY idx_prod_lowstock (tenant_id, quantity)
--- KEY idx_prod_grade (grade_id)
--- KEY idx_prod_publisher (publisher_id)
--- KEY idx_prod_author (author_id)
--- KEY idx_prod_edition (edition_id)
--- KEY idx_prod_brand (brand_id)
     CONSTRAINT uq_prod_tenant_barcode UNIQUE (tenant_id, barcode)
 );
+CREATE INDEX idx_prod_tenant ON products (tenant_id);
+CREATE INDEX idx_prod_cat ON products (category_id);
+CREATE INDEX idx_prod_subcat ON products (subcategory_id);
+CREATE INDEX idx_prod_supplier ON products (supplier_id);
+CREATE INDEX idx_prod_status ON products (status);
+CREATE INDEX idx_prod_lowstock ON products (tenant_id, quantity);
+CREATE INDEX idx_prod_grade ON products (grade_id);
+CREATE INDEX idx_prod_publisher ON products (publisher_id);
+CREATE INDEX idx_prod_author ON products (author_id);
+CREATE INDEX idx_prod_edition ON products (edition_id);
+CREATE INDEX idx_prod_brand ON products (brand_id);
 -- Upgrade a pre-POS or early-POS products table to the current model shape.
 ALTER TABLE products DROP FOREIGN KEY products_ibfk_1;
 ALTER TABLE products DROP FOREIGN KEY products_ibfk_2;
@@ -741,10 +741,10 @@ CREATE TABLE IF NOT EXISTS stock_intakes (
     supplier_id INT NULL,
     staff_id    INT NOT NULL,
     notes       VARCHAR(255) NULL,
-    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_intake_tenant (tenant_id)
--- KEY idx_intake_supplier (supplier_id)
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_intake_tenant ON stock_intakes (tenant_id);
+CREATE INDEX idx_intake_supplier ON stock_intakes (supplier_id);
 ALTER TABLE stock_intakes MODIFY supplier_id INT NULL;
 ALTER TABLE stock_intakes ADD COLUMN notes VARCHAR(255) NULL;
 
@@ -759,11 +759,11 @@ CREATE TABLE IF NOT EXISTS stock_intake_items (
     quantity        DECIMAL(12,2) NOT NULL,
     buying_price    DECIMAL(12,2) NOT NULL,
     remark          VARCHAR(255) NULL,
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_intakeitem_intake (stock_intake_id)
--- KEY idx_intakeitem_tenant (tenant_id)
--- KEY idx_intakeitem_product (product_id)
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_intakeitem_intake ON stock_intake_items (stock_intake_id);
+CREATE INDEX idx_intakeitem_tenant ON stock_intake_items (tenant_id);
+CREATE INDEX idx_intakeitem_product ON stock_intake_items (product_id);
 ALTER TABLE stock_intake_items ADD COLUMN remark VARCHAR(255) NULL;
 
 -- =============================================================================
@@ -794,11 +794,11 @@ CREATE TABLE IF NOT EXISTS sales (
     status           VARCHAR(255) CHECK (status IN ('completed','voided')) NOT NULL DEFAULT 'completed',
     payment_status   VARCHAR(255) CHECK (payment_status IN ('pending','paid','part_paid','credit','failed')) NOT NULL DEFAULT 'paid',
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_sale_receipt UNIQUE (tenant_id, receipt_number),
--- KEY idx_sale_tenant (tenant_id)
--- KEY idx_sale_staff (staff_id)
--- KEY idx_sale_created (tenant_id, created_at)
+    CONSTRAINT uq_sale_receipt UNIQUE (tenant_id, receipt_number)
 );
+CREATE INDEX idx_sale_tenant ON sales (tenant_id);
+CREATE INDEX idx_sale_staff ON sales (staff_id);
+CREATE INDEX idx_sale_created ON sales (tenant_id, created_at);
 ALTER TABLE sales ADD COLUMN sale_type VARCHAR(255) CHECK (sale_type IN ('retail','wholesale')) NOT NULL DEFAULT 'retail';
 ALTER TABLE sales ADD COLUMN mpesa_channel VARCHAR(10) NULL;
 ALTER TABLE sales ADD COLUMN subtotal DECIMAL(12,2) NOT NULL DEFAULT 0;
@@ -822,10 +822,10 @@ CREATE TABLE IF NOT EXISTS sale_items (
     price_type   VARCHAR(255) CHECK (price_type IN ('retail','wholesale')) NOT NULL DEFAULT 'retail',
     unit_cost    DECIMAL(12,2) NOT NULL DEFAULT 0,       -- snapshot of buying_price, for margin reports
     quantity     DECIMAL(12,2) NOT NULL,
-    line_total   DECIMAL(12,2) NOT NULL,
--- KEY idx_item_sale (sale_id)
--- KEY idx_item_tenant (tenant_id)
+    line_total   DECIMAL(12,2) NOT NULL
 );
+CREATE INDEX idx_item_sale ON sale_items (sale_id);
+CREATE INDEX idx_item_tenant ON sale_items (tenant_id);
 ALTER TABLE sale_items ADD COLUMN price_type VARCHAR(255) CHECK (price_type IN ('retail','wholesale')) NOT NULL DEFAULT 'retail';
 ALTER TABLE sale_items ADD COLUMN unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0;
 
@@ -838,10 +838,10 @@ CREATE TABLE IF NOT EXISTS sale_payments (
     amount     DECIMAL(12,2) NOT NULL,
     method     VARCHAR(20) NOT NULL DEFAULT 'cash',
     note       VARCHAR(255) NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_sale (sale_id)
--- KEY idx_tenant (tenant_id)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_sale ON sale_payments (sale_id);
+CREATE INDEX idx_tenant ON sale_payments (tenant_id);
 -- Bar/club tabs: a server opens a tab for a table/customer, adds items over
 -- one or more rounds, and someone with payments.process settles it later.
 -- channel distinguishes a walk-in sale (paid immediately) from a tab.
@@ -875,10 +875,10 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
     invoice_sent_at  TIMESTAMP NULL,
     delivery_note_sent_at TIMESTAMP NULL,
-    CONSTRAINT uq_order_receipt UNIQUE (tenant_id, receipt_number),
--- KEY idx_order_tenant (tenant_id)
--- KEY idx_order_status (tenant_id, status)
+    CONSTRAINT uq_order_receipt UNIQUE (tenant_id, receipt_number)
 );
+CREATE INDEX idx_order_tenant ON orders (tenant_id);
+CREATE INDEX idx_order_status ON orders (tenant_id, status);
 ALTER TABLE orders ADD COLUMN customer_phone VARCHAR(30) NULL;
 ALTER TABLE orders ADD COLUMN customer_email VARCHAR(255) NULL;
 ALTER TABLE orders ADD COLUMN channel VARCHAR(255) CHECK (channel IN ('walkin','tab')) NOT NULL DEFAULT 'tab';
@@ -914,10 +914,10 @@ CREATE TABLE IF NOT EXISTS order_payments (
     account_name VARCHAR(160) NULL,
     reference VARCHAR(120) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_order_payment_order (tenant_id, order_id)
--- KEY idx_order_payment_staff (tenant_id, staff_id)
     CONSTRAINT fk_order_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_order_payment_order ON order_payments (tenant_id, order_id);
+CREATE INDEX idx_order_payment_staff ON order_payments (tenant_id, staff_id);
 CREATE TABLE IF NOT EXISTS order_items (
     id           SERIAL PRIMARY KEY,
     tenant_id    INT NOT NULL,
@@ -928,10 +928,10 @@ CREATE TABLE IF NOT EXISTS order_items (
     quantity     DECIMAL(12,2) NOT NULL,
     line_total   DECIMAL(12,2) NOT NULL,
     added_by     INT NOT NULL,
-    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_orderitem_order (order_id)
--- KEY idx_orderitem_tenant (tenant_id)
+    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_orderitem_order ON order_items (order_id);
+CREATE INDEX idx_orderitem_tenant ON order_items (tenant_id);
 CREATE TABLE IF NOT EXISTS product_returns (
     id SERIAL PRIMARY KEY,
     tenant_id INT NOT NULL,
@@ -949,11 +949,11 @@ CREATE TABLE IF NOT EXISTS product_returns (
     processed_by INT NULL,
     migrated_at TIMESTAMP NULL,
     migrated_by INT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_returns_source (tenant_id, source_type, source_id)
--- KEY idx_returns_item (tenant_id, source_type, source_item_id)
--- KEY idx_returns_product (tenant_id, product_id)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_returns_source ON product_returns (tenant_id, source_type, source_id);
+CREATE INDEX idx_returns_item ON product_returns (tenant_id, source_type, source_item_id);
+CREATE INDEX idx_returns_product ON product_returns (tenant_id, product_id);
 ALTER TABLE product_returns ADD COLUMN migrated_at TIMESTAMP NULL;
 ALTER TABLE product_returns ADD COLUMN migrated_by INT NULL;
 
@@ -964,9 +964,9 @@ CREATE TABLE IF NOT EXISTS held_orders (
     tenant_id     INT NOT NULL,
     customer_name VARCHAR(120) NOT NULL,
     staff_id      INT NOT NULL,
-    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_held_tenant (tenant_id)
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_held_tenant ON held_orders (tenant_id);
 CREATE TABLE IF NOT EXISTS held_order_items (
     id             SERIAL PRIMARY KEY,
     tenant_id      INT NOT NULL,
@@ -974,10 +974,10 @@ CREATE TABLE IF NOT EXISTS held_order_items (
     product_id     INT NULL,
     product_name   VARCHAR(160) NOT NULL,
     unit_price     DECIMAL(12,2) NOT NULL,
-    quantity       DECIMAL(12,2) NOT NULL,
--- KEY idx_helditem_held (held_order_id)
--- KEY idx_helditem_tenant (tenant_id)
+    quantity       DECIMAL(12,2) NOT NULL
 );
+CREATE INDEX idx_helditem_held ON held_order_items (held_order_id);
+CREATE INDEX idx_helditem_tenant ON held_order_items (tenant_id);
 -- Clock in / clock out records for staff. One open (clock_out_at IS NULL)
 -- row per staff member at a time.
 CREATE TABLE IF NOT EXISTS staff_time_logs (
@@ -987,11 +987,11 @@ CREATE TABLE IF NOT EXISTS staff_time_logs (
     clock_in_at  TIMESTAMP NOT NULL,
     clock_out_at TIMESTAMP NULL,
     auto_closed  BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_timelog_tenant (tenant_id)
--- KEY idx_timelog_user_time (user_id, clock_in_at)
--- KEY idx_timelog_open (user_id, clock_out_at)
+    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_timelog_tenant ON staff_time_logs (tenant_id);
+CREATE INDEX idx_timelog_user_time ON staff_time_logs (user_id, clock_in_at);
+CREATE INDEX idx_timelog_open ON staff_time_logs (user_id, clock_out_at);
 ALTER TABLE staff_time_logs ADD COLUMN auto_closed BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS staff_reclock_authorizations (
@@ -1000,9 +1000,9 @@ CREATE TABLE IF NOT EXISTS staff_reclock_authorizations (
     user_id       INT NOT NULL,
     authorized_by INT NOT NULL,
     authorized_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    used_at       TIMESTAMP NULL,
--- KEY idx_reclock_user (tenant_id, user_id, used_at)
+    used_at       TIMESTAMP NULL
 );
+CREATE INDEX idx_reclock_user ON staff_reclock_authorizations (tenant_id, user_id, used_at);
 -- Application-level activity trail (product/staff/settings edits, etc).
 CREATE TABLE IF NOT EXISTS audit_log (
     id           SERIAL PRIMARY KEY,
@@ -1015,10 +1015,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
     entity_label VARCHAR(200) NULL,
     action       VARCHAR(30) NOT NULL,
     changes      TEXT NULL,
-    created_at   TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
--- KEY idx_audit_tenant_time (tenant_id, created_at)
--- KEY idx_audit_entity (entity_type, entity_id)
+    created_at   TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_audit_tenant_time ON audit_log (tenant_id, created_at);
+CREATE INDEX idx_audit_entity ON audit_log (entity_type, entity_id);
 -- =============================================================================
 -- Done. Next steps:
 --   1. Log in as admin@ismano.com (password Admin123!) and change the password.
