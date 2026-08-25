@@ -13,7 +13,7 @@ class Connection {
         $config = require __DIR__ . '/../config/database.php';
         
         try {
-            $dsn = "mysql:host={$config['host']};dbname={$config['dbname']};charset={$config['charset']}";
+            $dsn = "pgsql:host={$config['host']};dbname={$config['dbname']};port=" . ($config['port'] ?? '5432');
             $this->connection = new PDO($dsn, $config['username'], $config['password']);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);

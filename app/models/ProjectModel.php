@@ -298,7 +298,7 @@ private function getVideoEmbedCode($url, $type) {
     public function addTag($tag_name) {
         $slug = $this->createSlug($tag_name);
         $sql = "INSERT INTO project_tags (tag_name, tag_slug) VALUES (:name, :slug) 
-                ON DUPLICATE KEY UPDATE tag_name = tag_name";
+                ON CONFLICT DO NOTHING";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':name' => $tag_name, ':slug' => $slug]);
         return $this->db->lastInsertId();

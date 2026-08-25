@@ -147,7 +147,7 @@ class EnquiryModel {
      * Add note to enquiry
      */
     public function addNote($id, $note) {
-        $sql = "UPDATE enquiries SET notes = CONCAT(IFNULL(notes, ''), :note) WHERE id = :id";
+        $sql = "UPDATE enquiries SET notes = COALESCE(notes, '') || :note WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             ':id' => $id,

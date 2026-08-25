@@ -182,8 +182,9 @@ $username = (string)($config['username'] ?? 'root');
 $password = (string)($config['password'] ?? '');
 
 try {
+    $port = (string)($config['port'] ?? '5432');
     $pdo = new PDO(
-        "mysql:host={$host};charset={$charset}",
+        "pgsql:host={$host};port={$port};dbname={$database}",
         $username,
         $password,
         [
@@ -194,19 +195,18 @@ try {
     );
 
     $quotedDatabase = quoteIdentifier($database);
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS {$quotedDatabase} CHARACTER SET {$charset} COLLATE {$charset}_unicode_ci");
-    $pdo->exec("USE {$quotedDatabase}");
+    // Removed CREATE DATABASE and USE as they don't apply similarly in standard pgsql PDO connection
 
     $ran = 0;
     $skipped = 0;
     $rewritten = 0;
     $tolerableErrorCodes = [
-        1050, // table already exists
-        1060, // duplicate column
-        1061, // duplicate key name
-        1062, // duplicate entry
-        1091, // cannot drop/check missing column or key
-        1826, // duplicate foreign key constraint name
+        '42P07', // table already exists
+        '42701', // duplicate column
+        '42710', // duplicate object (key)
+        '23505', // unique violation (duplicate entry)
+        '42703', // undefined column
+        '42704', // undefined object (fk)
     ];
 
     foreach ($statements as $index => $statement) {
@@ -219,12 +219,12 @@ try {
             $pdo->exec($statement);
             $ran++;
         } catch (PDOException $e) {
-            $mysqlCode = (int)($e->errorInfo[1] ?? 0);
-            if (in_array($mysqlCode, $tolerableErrorCodes, true)) {
+            $sqlState = $e->getCode();
+            if (in_array($sqlState, $tolerableErrorCodes, true)) {
                 $skipped++;
                 continue;
             }
-            if ($mysqlCode === 1054 && preg_match('/^\s*ALTER\s+TABLE\b/i', $statement) === 1) {
+            if ($sqlState === '42703' && preg_match('/^\s*ALTER\s+TABLE\b/i', $statement) === 1) {
                 $skipped++;
                 continue;
             }

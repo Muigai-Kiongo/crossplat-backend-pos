@@ -52,10 +52,10 @@ class UserModel {
     public function updateProfile($user_id, $first_name, $last_name, $phone) {
         $sql = "INSERT INTO user_profiles (user_id, first_name, last_name, phone) 
                 VALUES (:user_id, :first_name, :last_name, :phone)
-                ON DUPLICATE KEY UPDATE 
-                first_name = VALUES(first_name), 
-                last_name = VALUES(last_name), 
-                phone = VALUES(phone)";
+                ON CONFLICT (user_id) DO UPDATE SET 
+                first_name = EXCLUDED.first_name, 
+                last_name = EXCLUDED.last_name, 
+                phone = EXCLUDED.phone";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             ':user_id' => $user_id,
