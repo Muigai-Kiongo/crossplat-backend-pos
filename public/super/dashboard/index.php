@@ -190,7 +190,7 @@ $icon = fn(string $n, int $s = 18) => NavIcons::svg($n, $s);
         <article class="metric"><span>Credit sales owed</span><strong><?php echo htmlspecialchars($currency); ?> <?php echo number_format($dashCreditOwed, 0); ?></strong><small><?php echo $icon('invoice-dollar', 12); ?> <?php echo count($openTabs); ?> open</small></article>
         <article class="metric"><span>Sales Revenue</span><strong><?php echo htmlspecialchars($currency); ?> <?php echo number_format($weekSum['revenue'], 0); ?></strong><small><?php echo $icon('arrow-up', 11); ?> This week</small></article>
         <article class="metric"><span>Extra charges today</span><strong><?php echo htmlspecialchars($currency); ?> <?php echo number_format($todayExtraCharges, 0); ?></strong><small><?php echo $icon('arrow-up', 11); ?> Pure profit</small></article>
-        <article class="metric <?php echo $profitAfterLoss < 0 ? 'danger' : ''; ?>"><span>Net Profit</span><strong><?php echo htmlspecialchars($currency); ?> <?php echo number_format($profitAvailable ? $profitAfterLoss : 0, 0); ?></strong><small><?php echo $icon('chart', 12); ?> After losses</small></article>
+        <article class="metric <?php echo $profitAfterLoss < 0 ? 'danger' : ''; ?>"><span>Net Profit</span><strong><?php echo htmlspecialchars($currency); ?> <?php echo number_format($profitAvailable ? $profitAfterLoss : 0, 0); ?></strong><small><?php echo $icon('chart', 12); ?> </small></article>
       </section>
 
       <section class="panel chart-panel">
@@ -262,7 +262,7 @@ $icon = fn(string $n, int $s = 18) => NavIcons::svg($n, $s);
               <small>Sales loss plus damaged stock</small>
             </div>
             <div class="pnl-card final <?php echo $profitAfterLoss < 0 ? 'loss' : 'profit'; ?>">
-              <span>Profit After Loss</span>
+              <span>Profit </span>
               <strong><?php echo htmlspecialchars($currency); ?> <?php echo number_format($profitAfterLoss, 0); ?></strong>
               <small>Gross profit minus damaged stock</small>
             </div>

@@ -9,7 +9,7 @@ return [
     'encryption' => 'tls',                     // 'tls' for port 587, 'ssl' for 465
 
     'username'   => 'vickiekaran254@gmail.com',
-    'password'   => 'main ngmz sanw ijak',     // Gmail App Password — regenerate after testing
+    'password'   => 'main ngmz sanw ijak',     // Gmail App Password — regenerate 
 
     // Gmail blocks/rewrites a From it can't verify, so the From matches the login:
     'from_email' => 'vickiekaran254@gmail.com',

@@ -5,7 +5,7 @@
 // is now the only way staff record a sale (the old direct-sale flow was
 // removed), so paid orders are "the sales" for owner reporting — see
 // forTenant()/productProfit() below, which shape rows to match SaleModel's
-// so the owner's Sales page can merge both sources. Legacy `sales` rows stay
+// so the owner's Sales page can merge both sources. Legacy "sales" rows stay
 // visible for history. Mirrors SaleModel's transactional style since
 // multi-row atomic writes don't fit the plain base-Model CRUD helpers.
 namespace Models;
@@ -1001,31 +1001,31 @@ class OrderModel extends Model
 
     private function ensurePaymentSchema(): void
     {
-        $this->ensureColumn('orders', 'customer_id', "ALTER TABLE orders ADD COLUMN customer_id INT NULL AFTER customer_email");
-        $this->ensureColumn('orders', 'sale_type', "ALTER TABLE orders ADD COLUMN sale_type ENUM('retail','wholesale') NOT NULL DEFAULT 'retail' AFTER channel");
-        $this->ensureColumn('order_items', 'price_type', "ALTER TABLE order_items ADD COLUMN price_type ENUM('retail','wholesale') NOT NULL DEFAULT 'retail' AFTER unit_price");
-        $this->ensureColumn('orders', 'vat_rate', "ALTER TABLE orders ADD COLUMN vat_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00 AFTER discount_amount");
-        $this->ensureColumn('orders', 'additional_charges', "ALTER TABLE orders ADD COLUMN additional_charges DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER discount_amount");
-        $this->ensureColumn('orders', 'additional_charges_note', "ALTER TABLE orders ADD COLUMN additional_charges_note VARCHAR(255) NULL AFTER additional_charges");
-        $this->ensureColumn('orders', 'vat_amount', "ALTER TABLE orders ADD COLUMN vat_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER vat_rate");
-        $this->ensureColumn('orders', 'payment_provider', "ALTER TABLE orders ADD COLUMN payment_provider VARCHAR(100) NULL AFTER payment_method");
-        $this->ensureColumn('orders', 'payment_account_name', "ALTER TABLE orders ADD COLUMN payment_account_name VARCHAR(160) NULL AFTER payment_provider");
-        $this->ensureColumn('orders', 'payment_reference', "ALTER TABLE orders ADD COLUMN payment_reference VARCHAR(120) NULL AFTER payment_account_name");
-        $this->ensureColumn('orders', 'payment_status', "ALTER TABLE orders ADD COLUMN payment_status VARCHAR(20) NOT NULL DEFAULT 'credit' AFTER payment_method");
-        $this->ensureColumn('orders', 'amount_paid', "ALTER TABLE orders ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total");
-        $this->ensureColumn('orders', 'amount_due', "ALTER TABLE orders ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER amount_paid");
-        $this->ensureColumn('orders', 'loyalty_points_earned', "ALTER TABLE orders ADD COLUMN loyalty_points_earned DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER customer_id");
-        $this->ensureColumn('orders', 'loyalty_points_redeemed', "ALTER TABLE orders ADD COLUMN loyalty_points_redeemed DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER loyalty_points_earned");
-        $this->ensureColumn('orders', 'credit_duration_days', "ALTER TABLE orders ADD COLUMN credit_duration_days INT NULL AFTER amount_due");
-        $this->ensureColumn('orders', 'credit_due_at', "ALTER TABLE orders ADD COLUMN credit_due_at DATETIME NULL AFTER credit_duration_days");
-        $this->ensureColumn('orders', 'thank_you_sent_at', "ALTER TABLE orders ADD COLUMN thank_you_sent_at DATETIME NULL AFTER delivery_note_sent_at");
-        $this->ensureColumn('orders', 'remembrance_sent_at', "ALTER TABLE orders ADD COLUMN remembrance_sent_at DATETIME NULL AFTER thank_you_sent_at");
+        $this->ensureColumn('orders', 'customer_id', "ALTER TABLE orders ADD COLUMN customer_id INT NULL ");
+        $this->ensureColumn('orders', 'sale_type', "ALTER TABLE orders ADD COLUMN sale_type ENUM('retail','wholesale') NOT NULL DEFAULT 'retail' ");
+        $this->ensureColumn('order_items', 'price_type', "ALTER TABLE order_items ADD COLUMN price_type ENUM('retail','wholesale') NOT NULL DEFAULT 'retail' ");
+        $this->ensureColumn('orders', 'vat_rate', "ALTER TABLE orders ADD COLUMN vat_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('orders', 'additional_charges', "ALTER TABLE orders ADD COLUMN additional_charges DECIMAL(12,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('orders', 'additional_charges_note', "ALTER TABLE orders ADD COLUMN additional_charges_note VARCHAR(255) NULL ");
+        $this->ensureColumn('orders', 'vat_amount', "ALTER TABLE orders ADD COLUMN vat_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('orders', 'payment_provider', "ALTER TABLE orders ADD COLUMN payment_provider VARCHAR(100) NULL ");
+        $this->ensureColumn('orders', 'payment_account_name', "ALTER TABLE orders ADD COLUMN payment_account_name VARCHAR(160) NULL ");
+        $this->ensureColumn('orders', 'payment_reference', "ALTER TABLE orders ADD COLUMN payment_reference VARCHAR(120) NULL ");
+        $this->ensureColumn('orders', 'payment_status', "ALTER TABLE orders ADD COLUMN payment_status VARCHAR(20) NOT NULL DEFAULT 'credit' ");
+        $this->ensureColumn('orders', 'amount_paid', "ALTER TABLE orders ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('orders', 'amount_due', "ALTER TABLE orders ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('orders', 'loyalty_points_earned', "ALTER TABLE orders ADD COLUMN loyalty_points_earned DECIMAL(12,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('orders', 'loyalty_points_redeemed', "ALTER TABLE orders ADD COLUMN loyalty_points_redeemed DECIMAL(12,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('orders', 'credit_duration_days', "ALTER TABLE orders ADD COLUMN credit_duration_days INT NULL ");
+        $this->ensureColumn('orders', 'credit_due_at', "ALTER TABLE orders ADD COLUMN credit_due_at TIMESTAMP NULL ");
+        $this->ensureColumn('orders', 'thank_you_sent_at', "ALTER TABLE orders ADD COLUMN thank_you_sent_at TIMESTAMP NULL ");
+        $this->ensureColumn('orders', 'remembrance_sent_at', "ALTER TABLE orders ADD COLUMN remembrance_sent_at TIMESTAMP NULL ");
         // Widen payment_method so deposits (incl. paybill) never fail on a
         // stale ENUM — schema self-heals at runtime, no manual migration.
         try {
             $this->db->exec(
                 "CREATE TABLE IF NOT EXISTS order_payments (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    id SERIAL PRIMARY KEY,
                     tenant_id INT NOT NULL,
                     order_id INT NOT NULL,
                     staff_id INT NULL,
@@ -1038,7 +1038,7 @@ class OrderModel extends Model
                     provider VARCHAR(100) NULL,
                     account_name VARCHAR(160) NULL,
                     reference VARCHAR(120) NULL,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     KEY idx_order_payment_order (tenant_id, order_id),
                     KEY idx_order_payment_staff (tenant_id, staff_id),
                     CONSTRAINT fk_order_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
@@ -1686,7 +1686,7 @@ class OrderModel extends Model
         $tid = \TenantContext::tenantId();
         if ($tid === null) { return []; }
 
-        $this->ensureColumn('products', 'package_buying_price', "ALTER TABLE `products` ADD COLUMN `package_buying_price` DECIMAL(12,2) NULL AFTER `pack_price`");
+        $this->ensureColumn('products', 'package_buying_price', "ALTER TABLE "products" ADD COLUMN "package_buying_price" DECIMAL(12,2) NULL ");
         $payPeriod = $this->paymentPeriodSql($period);
         $orderPeriod = $this->orderPeriodSql($period);
         $recognizedPay = "(CASE

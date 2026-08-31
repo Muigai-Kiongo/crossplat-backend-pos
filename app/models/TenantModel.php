@@ -41,25 +41,25 @@ class TenantModel extends Model
     public function ensureShopSchema(): void
     {
         $checks = [
-            'vat_rate' => "ALTER TABLE `tenants` ADD COLUMN `vat_rate` DECIMAL(5,2) NOT NULL DEFAULT 0.00 AFTER `kra_pin`",
-            'vat_inclusive' => "ALTER TABLE `tenants` ADD COLUMN `vat_inclusive` TINYINT(1) NOT NULL DEFAULT 1 AFTER `vat_rate`",
-            'loyalty_points_per_kes' => "ALTER TABLE `tenants` ADD COLUMN `loyalty_points_per_kes` DECIMAL(8,2) NOT NULL DEFAULT 1.00 AFTER `vat_inclusive`",
-            'loyalty_kes_per_point' => "ALTER TABLE `tenants` ADD COLUMN `loyalty_kes_per_point` DECIMAL(8,4) NOT NULL DEFAULT 0.0100 AFTER `loyalty_points_per_kes`",
-            'low_stock_alert_enabled' => "ALTER TABLE `tenants` ADD COLUMN `low_stock_alert_enabled` TINYINT(1) NOT NULL DEFAULT 1 AFTER `loyalty_kes_per_point`",
-            'payment_credentials' => "ALTER TABLE `tenants` ADD COLUMN `payment_credentials` TEXT NULL AFTER `kra_pin`",
-            'payment_methods_json' => "ALTER TABLE `tenants` ADD COLUMN `payment_methods_json` TEXT NULL AFTER `payment_credentials`",
-            'po_box' => "ALTER TABLE `tenants` ADD COLUMN `po_box` VARCHAR(120) NULL AFTER `address`",
-            'business_email' => "ALTER TABLE `tenants` ADD COLUMN `business_email` VARCHAR(190) NULL AFTER `po_box`",
+            'vat_rate' => "ALTER TABLE "tenants" ADD COLUMN "vat_rate" DECIMAL(5,2) NOT NULL DEFAULT 0.00 ",
+            'vat_inclusive' => "ALTER TABLE "tenants" ADD COLUMN "vat_inclusive" TINYINT(1) NOT NULL DEFAULT 1 ",
+            'loyalty_points_per_kes' => "ALTER TABLE "tenants" ADD COLUMN "loyalty_points_per_kes" DECIMAL(8,2) NOT NULL DEFAULT 1.00 ",
+            'loyalty_kes_per_point' => "ALTER TABLE "tenants" ADD COLUMN "loyalty_kes_per_point" DECIMAL(8,4) NOT NULL DEFAULT 0.0100 ",
+            'low_stock_alert_enabled' => "ALTER TABLE "tenants" ADD COLUMN "low_stock_alert_enabled" TINYINT(1) NOT NULL DEFAULT 1 ",
+            'payment_credentials' => "ALTER TABLE "tenants" ADD COLUMN "payment_credentials" TEXT NULL ",
+            'payment_methods_json' => "ALTER TABLE "tenants" ADD COLUMN "payment_methods_json" TEXT NULL ",
+            'po_box' => "ALTER TABLE "tenants" ADD COLUMN "po_box" VARCHAR(120) NULL ",
+            'business_email' => "ALTER TABLE "tenants" ADD COLUMN "business_email" VARCHAR(190) NULL ",
         ];
         foreach ($checks as $column => $sql) {
             try {
-                $this->db->query("SELECT `{$column}` FROM `tenants` LIMIT 1");
+                $this->db->query("SELECT `{$column}` FROM "tenants" LIMIT 1");
             } catch (\PDOException $e) {
                 try { $this->db->exec($sql); } catch (\PDOException $ignored) {}
             }
         }
         try {
-            $this->db->exec('ALTER TABLE `tenants` MODIFY COLUMN `receipt_footer` TEXT NULL');
+            $this->db->exec('ALTER TABLE "tenants" MODIFY COLUMN "receipt_footer" TEXT NULL');
         } catch (\PDOException $ignored) {}
     }
 

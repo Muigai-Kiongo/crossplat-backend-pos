@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($old['phone'] !== '') {
                 $pdo->prepare(
                     'INSERT INTO user_profiles (user_id, phone) VALUES (?, ?)
-                     ON DUPLICATE KEY UPDATE phone = VALUES(phone)'
+                     ON CONFLICT (user_id) DO UPDATE SET phone = EXCLUDED.phone'
                 )->execute([$ownerId, $old['phone']]);
             }
 

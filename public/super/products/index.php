@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $old['image_path'] = $editRow['image_path'] ?? null;
 }
 
-// Prefill values (edit row, or repopulated $old after a failed submit)
+// Prefill values (edit row, or repopulated $old  failed submit)
 $val = function (string $k, $default = '') use ($editRow, $old) {
     if (!empty($old)) { return $old[$k] ?? $default; }
     return $editRow[$k] ?? $default;
@@ -176,7 +176,7 @@ $textVal = function (string $formKey, string $joinedNameKey) use ($editRow, $old
     return $editRow[$joinedNameKey] ?? '';
 };
 $curImage  = $editRow['image_path'] ?? ($old['image_path'] ?? null);
-/** MySQL/`strtotime`-parseable datetime -> the `datetime-local` input format. */
+/** MySQL/"strtotime"-parseable TIMESTAMP -> the `TIMESTAMP-local` input format. */
 $dtLocal = function ($v): string {
     if (!$v) { return ''; }
     $t = strtotime((string) $v);
@@ -328,12 +328,12 @@ $actionBadge = function (string $a): string {
               </div>
               <div class="col-4">
                 <label class="form-label small mb-1">Starts <span class="text-muted">(optional)</span></label>
-                <input name="offer_starts_at" type="datetime-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($dtLocal($val('offer_starts_at'))); ?>">
+                <input name="offer_starts_at" type="TIMESTAMP-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($dtLocal($val('offer_starts_at'))); ?>">
                 <?php if (!empty($errors['offer_starts_at'])): ?><small class="text-danger"><?php echo htmlspecialchars($errors['offer_starts_at']); ?></small><?php endif; ?>
               </div>
               <div class="col-4">
                 <label class="form-label small mb-1">Ends</label>
-                <input name="offer_ends_at" type="datetime-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($dtLocal($val('offer_ends_at'))); ?>">
+                <input name="offer_ends_at" type="TIMESTAMP-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($dtLocal($val('offer_ends_at'))); ?>">
                 <?php if (!empty($errors['offer_ends_at'])): ?><small class="text-danger"><?php echo htmlspecialchars($errors['offer_ends_at']); ?></small><?php endif; ?>
               </div>
             </div>

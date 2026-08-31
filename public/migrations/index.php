@@ -134,7 +134,7 @@ $h = fn($v) => htmlspecialchars((string) $v, ENT_QUOTES);
   <?php elseif ($results): ?>
     <?php if ($results['errors']): ?>
       <div class="alert err">
-        <strong>Stopped at a problem — nothing after it was run.</strong><br>
+        <strong>Stopped at a problem — nothing  was run.</strong><br>
         Statement: <code><?php echo $h($results['errors'][0]['statement']); ?>…</code><br>
         Error: <?php echo $h($results['errors'][0]['message']); ?>
       </div>

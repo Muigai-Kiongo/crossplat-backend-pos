@@ -120,7 +120,7 @@ function setup_render_header(string $title, string $activeStep = 'migrations'): 
     <a class="step <?php echo $activeStep === 'migrations' ? 'active' : ''; ?>" href="<?php echo public_url('setup/'); ?>">1. Migrations</a>
     <a class="step <?php echo $activeStep === 'account' ? 'active' : ''; ?>" href="<?php echo public_url('setup/account.php'); ?>">2. Super account</a>
   </div>
-  <div class="alert warn">This setup area is intentionally unprotected. Delete <code>public/setup</code> after migrations and the first login account are ready.</div>
+  <div class="alert warn">This setup area is intentionally unprotected. Delete <code>public/setup</code>  and the first login account are ready.</div>
 <?php
 }
 

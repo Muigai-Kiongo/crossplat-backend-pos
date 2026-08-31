@@ -1,5 +1,5 @@
 <?php
-// Thank-you note after a completed sale / paid invoice.
+// Thank-you note  completed sale / paid invoice.
 
 function build_order_thank_you_email(array $order, array $items, array $shop): array
 {

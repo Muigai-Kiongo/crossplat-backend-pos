@@ -20,7 +20,7 @@ try {
                 entity_id INT NOT NULL,
                 action VARCHAR(20) NOT NULL,
                 payload JSON NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_sync_tenant_time (tenant_id, id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
         );

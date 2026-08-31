@@ -95,7 +95,7 @@ class BookAttributeModel extends Model
     private function ensureSchema(): void
     {
         try {
-            $this->db->query("SELECT 1 FROM `book_attributes` LIMIT 1");
+            $this->db->query("SELECT 1 FROM "book_attributes" LIMIT 1");
             $this->ensureBrandType();
             return;
         } catch (\PDOException $e) {
@@ -103,32 +103,32 @@ class BookAttributeModel extends Model
         }
 
         $sql = [];
-        $sql[] = "CREATE TABLE IF NOT EXISTS `book_attributes` (
-            `id` INT NOT NULL AUTO_INCREMENT,
-            `tenant_id` INT NOT NULL,
-            `type` ENUM('grade','publisher','author','edition','brand') NOT NULL,
-            `name` VARCHAR(160) NOT NULL,
-            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id`),
-            UNIQUE KEY `uq_attr_tenant_type_name` (`tenant_id`, `type`, `name`),
-            KEY `idx_attr_tenant_type` (`tenant_id`, `type`)
+        $sql[] = "CREATE TABLE IF NOT EXISTS "book_attributes" (
+            "id" SERIAL,
+            "tenant_id" INT NOT NULL,
+            "type" ENUM('grade','publisher','author','edition','brand') NOT NULL,
+            "name" VARCHAR(160) NOT NULL,
+            "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY ("id"),
+            UNIQUE KEY "uq_attr_tenant_type_name" ("tenant_id", "type", "name"),
+            KEY "idx_attr_tenant_type" ("tenant_id", "type")
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
         $this->db->exec(implode("\n", $sql));
 
         $productColumns = [];
         try {
-            $this->db->query("SELECT `grade_id` FROM `products` LIMIT 1");
+            $this->db->query("SELECT "grade_id" FROM "products" LIMIT 1");
         } catch (\PDOException $e) {
-            $productColumns[] = "ALTER TABLE `products` ADD COLUMN `grade_id` INT NULL AFTER `subcategory_id`;";
-            $productColumns[] = "ALTER TABLE `products` ADD COLUMN `publisher_id` INT NULL AFTER `grade_id`;";
-            $productColumns[] = "ALTER TABLE `products` ADD COLUMN `author_id` INT NULL AFTER `publisher_id`;";
-            $productColumns[] = "ALTER TABLE `products` ADD COLUMN `edition_id` INT NULL AFTER `author_id`;";
-            $productColumns[] = "ALTER TABLE `products` ADD KEY `idx_prod_grade` (`grade_id`);";
-            $productColumns[] = "ALTER TABLE `products` ADD KEY `idx_prod_publisher` (`publisher_id`);";
-            $productColumns[] = "ALTER TABLE `products` ADD KEY `idx_prod_author` (`author_id`);";
-            $productColumns[] = "ALTER TABLE `products` ADD KEY `idx_prod_edition` (`edition_id`);";
+            $productColumns[] = "ALTER TABLE "products" ADD COLUMN "grade_id" INT NULL ;";
+            $productColumns[] = "ALTER TABLE "products" ADD COLUMN "publisher_id" INT NULL ;";
+            $productColumns[] = "ALTER TABLE "products" ADD COLUMN "author_id" INT NULL ;";
+            $productColumns[] = "ALTER TABLE "products" ADD COLUMN "edition_id" INT NULL ;";
+            $productColumns[] = "ALTER TABLE "products" ADD KEY "idx_prod_grade" ("grade_id");";
+            $productColumns[] = "ALTER TABLE "products" ADD KEY "idx_prod_publisher" ("publisher_id");";
+            $productColumns[] = "ALTER TABLE "products" ADD KEY "idx_prod_author" ("author_id");";
+            $productColumns[] = "ALTER TABLE "products" ADD KEY "idx_prod_edition" ("edition_id");";
             foreach ($productColumns as $columnSql) {
                 try {
                     $this->db->exec($columnSql);
@@ -139,16 +139,16 @@ class BookAttributeModel extends Model
         }
     }
 
-    /** A `book_attributes` table created before Stationery existed has a
-     *  `type` ENUM without 'brand' — widen it in place, once, cheaply. */
+    /** A "book_attributes" table created before Stationery existed has a
+     *  "type" ENUM without 'brand' — widen it in place, once, cheaply. */
     private function ensureBrandType(): void
     {
-        $stmt = $this->db->query("SHOW COLUMNS FROM `book_attributes` LIKE 'type'");
+        $stmt = $this->db->query("SHOW COLUMNS FROM "book_attributes" LIKE 'type'");
         $col = $stmt ? $stmt->fetch() : null;
         $definition = $col['Type'] ?? '';
         if ($definition !== '' && stripos($definition, "'brand'") === false) {
             try {
-                $this->db->exec("ALTER TABLE `book_attributes` MODIFY COLUMN `type` ENUM('grade','publisher','author','edition','brand') NOT NULL");
+                $this->db->exec("ALTER TABLE "book_attributes" MODIFY COLUMN "type" ENUM('grade','publisher','author','edition','brand') NOT NULL");
             } catch (\PDOException $ignored) {
                 // Best-effort — a concurrent request may have already widened it.
             }

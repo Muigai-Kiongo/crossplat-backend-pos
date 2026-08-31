@@ -91,18 +91,18 @@ class HeldOrderModel extends Model
     {
         $this->ensureTable('held_orders', "
             CREATE TABLE IF NOT EXISTS held_orders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 customer_name VARCHAR(160) NOT NULL,
                 staff_id INT NOT NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_held_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ");
 
         $this->ensureTable('held_order_items', "
             CREATE TABLE IF NOT EXISTS held_order_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 held_order_id INT NOT NULL,
                 product_id INT NULL,
@@ -110,12 +110,12 @@ class HeldOrderModel extends Model
                 unit_price DECIMAL(12,2) NOT NULL,
                 price_type VARCHAR(20) NOT NULL DEFAULT 'retail',
                 quantity DECIMAL(12,2) NOT NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_held_item_order (held_order_id),
                 KEY idx_held_item_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ");
-        $this->ensureColumn('held_order_items', 'price_type', "ALTER TABLE held_order_items ADD COLUMN price_type VARCHAR(20) NOT NULL DEFAULT 'retail' AFTER unit_price");
+        $this->ensureColumn('held_order_items', 'price_type', "ALTER TABLE held_order_items ADD COLUMN price_type VARCHAR(20) NOT NULL DEFAULT 'retail' ");
     }
 
     private function ensureTable(string $table, string $sql): void
@@ -139,7 +139,7 @@ class HeldOrderModel extends Model
         } catch (\PDOException $ignored) {}
     }
 
-    /** Delete a held order and its items — used both for "Discard" and after a successful resume→checkout. */
+    /** Delete a held order and its items — used both for "Discard" and  successful resume→checkout. */
     public function discard(int $heldOrderId): bool
     {
         $tid = \TenantContext::tenantId();

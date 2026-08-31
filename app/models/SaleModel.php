@@ -460,7 +460,7 @@ class SaleModel extends Model
     {
         $this->ensureTable('sales', "
             CREATE TABLE IF NOT EXISTS sales (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 staff_id INT NOT NULL,
                 sale_type VARCHAR(20) NULL,
@@ -480,7 +480,7 @@ class SaleModel extends Model
                 customer_phone VARCHAR(30) NULL,
                 customer_email VARCHAR(255) NULL,
                 status VARCHAR(20) NOT NULL DEFAULT 'completed',
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE KEY uq_sale_receipt (tenant_id, receipt_number),
                 KEY idx_sale_tenant (tenant_id),
                 KEY idx_sale_staff (staff_id)
@@ -489,7 +489,7 @@ class SaleModel extends Model
 
         $this->ensureTable('sale_items', "
             CREATE TABLE IF NOT EXISTS sale_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 sale_id INT NOT NULL,
                 product_id INT NULL,
@@ -499,7 +499,7 @@ class SaleModel extends Model
                 price_type VARCHAR(20) NULL,
                 quantity DECIMAL(12,2) NOT NULL,
                 line_total DECIMAL(12,2) NOT NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_item_sale (sale_id),
                 KEY idx_item_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -507,28 +507,28 @@ class SaleModel extends Model
 
         $this->ensureTable('sale_payments', "
             CREATE TABLE IF NOT EXISTS sale_payments (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 sale_id INT NOT NULL,
                 staff_id INT NOT NULL,
                 amount DECIMAL(12,2) NOT NULL,
                 method VARCHAR(20) NOT NULL,
                 note VARCHAR(255) NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_payment_sale (sale_id),
                 KEY idx_payment_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ");
 
-        $this->ensureColumn('sales', 'sale_type', "ALTER TABLE sales ADD COLUMN sale_type VARCHAR(20) NULL AFTER staff_id");
-        $this->ensureColumn('sales', 'payment_status', "ALTER TABLE sales ADD COLUMN payment_status VARCHAR(20) NULL AFTER payment_method");
-        $this->ensureColumn('sales', 'subtotal', "ALTER TABLE sales ADD COLUMN subtotal DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER total");
-        $this->ensureColumn('sales', 'discount_amount', "ALTER TABLE sales ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER subtotal");
-        $this->ensureColumn('sales', 'amount_paid', "ALTER TABLE sales ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER discount_amount");
-        $this->ensureColumn('sales', 'amount_due', "ALTER TABLE sales ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER amount_paid");
-        $this->ensureColumn('sales', 'cash_amount', "ALTER TABLE sales ADD COLUMN cash_amount DECIMAL(12,2) NULL AFTER change_given");
-        $this->ensureColumn('sales', 'mpesa_amount', "ALTER TABLE sales ADD COLUMN mpesa_amount DECIMAL(12,2) NULL AFTER cash_amount");
-        $this->ensureColumn('sale_items', 'price_type', "ALTER TABLE sale_items ADD COLUMN price_type VARCHAR(20) NULL AFTER unit_price");
+        $this->ensureColumn('sales', 'sale_type', "ALTER TABLE sales ADD COLUMN sale_type VARCHAR(20) NULL ");
+        $this->ensureColumn('sales', 'payment_status', "ALTER TABLE sales ADD COLUMN payment_status VARCHAR(20) NULL ");
+        $this->ensureColumn('sales', 'subtotal', "ALTER TABLE sales ADD COLUMN subtotal DECIMAL(12,2) NOT NULL DEFAULT 0 ");
+        $this->ensureColumn('sales', 'discount_amount', "ALTER TABLE sales ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0 ");
+        $this->ensureColumn('sales', 'amount_paid', "ALTER TABLE sales ADD COLUMN amount_paid DECIMAL(12,2) NOT NULL DEFAULT 0 ");
+        $this->ensureColumn('sales', 'amount_due', "ALTER TABLE sales ADD COLUMN amount_due DECIMAL(12,2) NOT NULL DEFAULT 0 ");
+        $this->ensureColumn('sales', 'cash_amount', "ALTER TABLE sales ADD COLUMN cash_amount DECIMAL(12,2) NULL ");
+        $this->ensureColumn('sales', 'mpesa_amount', "ALTER TABLE sales ADD COLUMN mpesa_amount DECIMAL(12,2) NULL ");
+        $this->ensureColumn('sale_items', 'price_type', "ALTER TABLE sale_items ADD COLUMN price_type VARCHAR(20) NULL ");
     }
 
     private function ensureTable(string $table, string $sql): void
@@ -658,7 +658,7 @@ class SaleModel extends Model
         $tid = \TenantContext::tenantId();
         if ($tid === null) { return []; }
 
-        $this->ensureColumn('products', 'package_buying_price', "ALTER TABLE `products` ADD COLUMN `package_buying_price` DECIMAL(12,2) NULL AFTER `pack_price`");
+        $this->ensureColumn('products', 'package_buying_price', "ALTER TABLE "products" ADD COLUMN "package_buying_price" DECIMAL(12,2) NULL ");
         $costCol = $this->resolveCostColumn($costCol);
         if ($costCol === null) {
             throw new \RuntimeException('NO_COST_COLUMN');

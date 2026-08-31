@@ -234,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </table>
 
           <p style="margin:0;font-size:.85rem;color:#64748b;">
-            We recommend changing your password after your first login.<br>
+            We recommend changing your password  first login.<br>
             If you did not expect this email, please ignore it.
           </p>
         </td></tr>
@@ -259,7 +259,7 @@ HTML;
                             . "Password: {$ownerPassword}\n"
                             . "Phone:    {$ownerPhone}\n\n"
                             . "Login: {$loginUrl}\n\n"
-                            . "We recommend changing your password after your first login.";
+                            . "We recommend changing your password  first login.";
 
                         $mail->send();
                         $mailResult = 'ok';
@@ -336,7 +336,7 @@ $h = fn($v) => htmlspecialchars((string) $v, ENT_QUOTES);
   <p class="lead">Creates a tenant workspace and owner account, then emails the owner their credentials using your SMTP config.</p>
 
   <div class="alert warn">
-    ⚠ This page has <strong>no authentication</strong>. Restrict it at the web-server level (IP allowlist) or delete it after setup.
+    ⚠ This page has <strong>no authentication</strong>. Restrict it at the web-server level (IP allowlist) or delete it .
   </div>
 
   <?php /* ── Validation errors ── */ ?>

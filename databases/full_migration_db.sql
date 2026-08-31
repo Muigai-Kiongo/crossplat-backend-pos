@@ -535,8 +535,7 @@ CREATE TABLE IF NOT EXISTS enquiries (
     contacted_at  TIMESTAMP NULL,
     closed_at     TIMESTAMP NULL,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
-    FULLTEXT INDEX idx_search (name, email, message)
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
 );
 CREATE INDEX idx_status ON enquiries (status);
 CREATE INDEX idx_email ON enquiries (email);

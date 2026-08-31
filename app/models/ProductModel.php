@@ -443,27 +443,27 @@ class ProductModel extends Model
     private function ensureSchema(): void
     {
         $checks = [
-            'offer_price' => "ALTER TABLE `products` ADD COLUMN `offer_price` DECIMAL(12,2) NULL AFTER `retail_price`",
-            'offer_starts_at' => "ALTER TABLE `products` ADD COLUMN `offer_starts_at` DATETIME NULL AFTER `offer_price`",
-            'offer_ends_at' => "ALTER TABLE `products` ADD COLUMN `offer_ends_at` DATETIME NULL AFTER `offer_starts_at`",
-            'barcode' => "ALTER TABLE `products` ADD COLUMN `barcode` VARCHAR(64) NULL AFTER `edition_id`",
-            'grade_id' => "ALTER TABLE `products` ADD COLUMN `grade_id` INT NULL AFTER `subcategory_id`",
-            'publisher_id' => "ALTER TABLE `products` ADD COLUMN `publisher_id` INT NULL AFTER `grade_id`",
-            'author_id' => "ALTER TABLE `products` ADD COLUMN `author_id` INT NULL AFTER `publisher_id`",
-            'edition_id' => "ALTER TABLE `products` ADD COLUMN `edition_id` INT NULL AFTER `author_id`",
-            'product_type' => "ALTER TABLE `products` ADD COLUMN `product_type` ENUM('book','stationery','product') NOT NULL DEFAULT 'product' AFTER `tenant_id`",
-            'brand_id' => "ALTER TABLE `products` ADD COLUMN `brand_id` INT NULL AFTER `edition_id`",
-            'credit_limit' => "ALTER TABLE `products` ADD COLUMN `credit_limit` DECIMAL(12,2) NULL AFTER `low_stock_threshold`",
-            'units_per_pack' => "ALTER TABLE `products` ADD COLUMN `units_per_pack` DECIMAL(12,2) NOT NULL DEFAULT 1.00 AFTER `unit`",
-            'pack_unit' => "ALTER TABLE `products` ADD COLUMN `pack_unit` VARCHAR(20) NULL AFTER `units_per_pack`",
-            'pack_price' => "ALTER TABLE `products` ADD COLUMN `pack_price` DECIMAL(12,2) NULL AFTER `pack_unit`",
-            'package_buying_price' => "ALTER TABLE `products` ADD COLUMN `package_buying_price` DECIMAL(12,2) NULL AFTER `pack_price`",
-            'faulty_quantity' => "ALTER TABLE `products` ADD COLUMN `faulty_quantity` DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER `quantity`",
+            'offer_price' => "ALTER TABLE "products" ADD COLUMN "offer_price" DECIMAL(12,2) NULL ",
+            'offer_starts_at' => "ALTER TABLE "products" ADD COLUMN "offer_starts_at" TIMESTAMP NULL ",
+            'offer_ends_at' => "ALTER TABLE "products" ADD COLUMN "offer_ends_at" TIMESTAMP NULL ",
+            'barcode' => "ALTER TABLE "products" ADD COLUMN "barcode" VARCHAR(64) NULL ",
+            'grade_id' => "ALTER TABLE "products" ADD COLUMN "grade_id" INT NULL ",
+            'publisher_id' => "ALTER TABLE "products" ADD COLUMN "publisher_id" INT NULL ",
+            'author_id' => "ALTER TABLE "products" ADD COLUMN "author_id" INT NULL ",
+            'edition_id' => "ALTER TABLE "products" ADD COLUMN "edition_id" INT NULL ",
+            'product_type' => "ALTER TABLE "products" ADD COLUMN "product_type" ENUM('book','stationery','product') NOT NULL DEFAULT 'product' ",
+            'brand_id' => "ALTER TABLE "products" ADD COLUMN "brand_id" INT NULL ",
+            'credit_limit' => "ALTER TABLE "products" ADD COLUMN "credit_limit" DECIMAL(12,2) NULL ",
+            'units_per_pack' => "ALTER TABLE "products" ADD COLUMN "units_per_pack" DECIMAL(12,2) NOT NULL DEFAULT 1.00 ",
+            'pack_unit' => "ALTER TABLE "products" ADD COLUMN "pack_unit" VARCHAR(20) NULL ",
+            'pack_price' => "ALTER TABLE "products" ADD COLUMN "pack_price" DECIMAL(12,2) NULL ",
+            'package_buying_price' => "ALTER TABLE "products" ADD COLUMN "package_buying_price" DECIMAL(12,2) NULL ",
+            'faulty_quantity' => "ALTER TABLE "products" ADD COLUMN "faulty_quantity" DECIMAL(12,2) NOT NULL DEFAULT 0.00 ",
         ];
 
         foreach ($checks as $column => $sql) {
             try {
-                $this->db->query("SELECT `{$column}` FROM `products` LIMIT 1");
+                $this->db->query("SELECT `{$column}` FROM "products" LIMIT 1");
             } catch (\PDOException $e) {
                 try {
                     $this->db->exec($sql);
@@ -473,7 +473,7 @@ class ProductModel extends Model
             }
         }
         try {
-            $this->db->exec("ALTER TABLE `products` MODIFY COLUMN `product_type` ENUM('book','stationery','product') NOT NULL DEFAULT 'product'");
+            $this->db->exec("ALTER TABLE "products" MODIFY COLUMN "product_type" ENUM('book','stationery','product') NOT NULL DEFAULT 'product'");
         } catch (\PDOException $ignored) {}
     }
 
@@ -596,7 +596,7 @@ class ProductModel extends Model
             if (!empty($in['offer_ends_at']) && !empty($in['offer_starts_at'])
                 && strtotime($in['offer_ends_at']) !== false && strtotime($in['offer_starts_at']) !== false
                 && strtotime($in['offer_ends_at']) <= strtotime($in['offer_starts_at'])) {
-                $errors['offer_ends_at'] = 'Offer end must be after its start.';
+                $errors['offer_ends_at'] = 'Offer end must be  start.';
             }
         }
         return $errors;

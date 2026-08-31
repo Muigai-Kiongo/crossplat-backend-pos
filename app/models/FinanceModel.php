@@ -23,7 +23,7 @@ class FinanceModel extends Model
         try {
             $this->db->exec(
                 "CREATE TABLE IF NOT EXISTS finance_entries (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    id SERIAL PRIMARY KEY,
                     tenant_id INT NOT NULL,
                     entry_type ENUM('revenue','expense') NOT NULL,
                     category VARCHAR(120) NOT NULL DEFAULT '',
@@ -33,7 +33,7 @@ class FinanceModel extends Model
                     reference VARCHAR(120) NULL,
                     entry_date DATE NOT NULL,
                     created_by INT NULL,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     KEY idx_finance_tenant_date (tenant_id, entry_date),
                     KEY idx_finance_tenant_type (tenant_id, entry_type)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"

@@ -199,12 +199,12 @@ class StockIntakeModel extends Model
     {
         $this->ensureTable('stock_intakes', "
             CREATE TABLE IF NOT EXISTS stock_intakes (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 supplier_id INT NULL,
                 staff_id INT NOT NULL,
                 notes VARCHAR(255) NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_intake_tenant (tenant_id),
                 KEY idx_intake_supplier (supplier_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -212,7 +212,7 @@ class StockIntakeModel extends Model
 
         $this->ensureTable('stock_intake_items', "
             CREATE TABLE IF NOT EXISTS stock_intake_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 stock_intake_id INT NOT NULL,
                 product_id INT NULL,
@@ -220,7 +220,7 @@ class StockIntakeModel extends Model
                 quantity DECIMAL(12,2) NULL,
                 buying_price DECIMAL(12,2) NULL,
                 remark VARCHAR(255) NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_intakeitem_intake (stock_intake_id),
                 KEY idx_intakeitem_tenant (tenant_id),
                 KEY idx_intakeitem_product (product_id)
@@ -228,15 +228,15 @@ class StockIntakeModel extends Model
         ");
 
         $this->ensureColumn('stock_intakes', 'supplier_id', "ALTER TABLE stock_intakes MODIFY supplier_id INT NULL");
-        $this->ensureColumn('stock_intakes', 'notes', "ALTER TABLE stock_intakes ADD COLUMN notes VARCHAR(255) NULL AFTER staff_id");
-        $this->ensureColumn('stock_intake_items', 'remark', "ALTER TABLE stock_intake_items ADD COLUMN remark VARCHAR(255) NULL AFTER buying_price");
-        $this->ensureColumn('stock_intake_items', 'faulty_quantity', "ALTER TABLE stock_intake_items ADD COLUMN faulty_quantity DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER quantity");
-        $this->ensureColumn('stock_intake_items', 'unit', "ALTER TABLE stock_intake_items ADD COLUMN unit VARCHAR(20) NULL AFTER faulty_quantity");
-        $this->ensureColumn('stock_intake_items', 'colors', "ALTER TABLE stock_intake_items ADD COLUMN colors VARCHAR(255) NULL AFTER unit");
-        $this->ensureColumn('stock_intake_items', 'package_unit', "ALTER TABLE stock_intake_items ADD COLUMN package_unit VARCHAR(20) NULL AFTER colors");
-        $this->ensureColumn('stock_intake_items', 'package_quantity', "ALTER TABLE stock_intake_items ADD COLUMN package_quantity DECIMAL(12,2) NULL AFTER package_unit");
-        $this->ensureColumn('stock_intake_items', 'units_per_package', "ALTER TABLE stock_intake_items ADD COLUMN units_per_package DECIMAL(12,2) NULL AFTER package_quantity");
-        $this->ensureColumn('stock_intake_items', 'package_price', "ALTER TABLE stock_intake_items ADD COLUMN package_price DECIMAL(12,2) NULL AFTER units_per_package");
+        $this->ensureColumn('stock_intakes', 'notes', "ALTER TABLE stock_intakes ADD COLUMN notes VARCHAR(255) NULL ");
+        $this->ensureColumn('stock_intake_items', 'remark', "ALTER TABLE stock_intake_items ADD COLUMN remark VARCHAR(255) NULL ");
+        $this->ensureColumn('stock_intake_items', 'faulty_quantity', "ALTER TABLE stock_intake_items ADD COLUMN faulty_quantity DECIMAL(12,2) NOT NULL DEFAULT 0.00 ");
+        $this->ensureColumn('stock_intake_items', 'unit', "ALTER TABLE stock_intake_items ADD COLUMN unit VARCHAR(20) NULL ");
+        $this->ensureColumn('stock_intake_items', 'colors', "ALTER TABLE stock_intake_items ADD COLUMN colors VARCHAR(255) NULL ");
+        $this->ensureColumn('stock_intake_items', 'package_unit', "ALTER TABLE stock_intake_items ADD COLUMN package_unit VARCHAR(20) NULL ");
+        $this->ensureColumn('stock_intake_items', 'package_quantity', "ALTER TABLE stock_intake_items ADD COLUMN package_quantity DECIMAL(12,2) NULL ");
+        $this->ensureColumn('stock_intake_items', 'units_per_package', "ALTER TABLE stock_intake_items ADD COLUMN units_per_package DECIMAL(12,2) NULL ");
+        $this->ensureColumn('stock_intake_items', 'package_price', "ALTER TABLE stock_intake_items ADD COLUMN package_price DECIMAL(12,2) NULL ");
     }
 
     private function ensureTable(string $table, string $sql): void

@@ -476,7 +476,7 @@ $isCart = strpos($_SERVER['REQUEST_URI'], '/store/cart') !== false;
     } else {
         document.addEventListener('DOMContentLoaded', refreshCart);
     }
-    // Other scripts can refresh after add/remove: window.dispatchEvent(new Event('cart:updated'));
+    // Other scripts can refresh /remove: window.dispatchEvent(new Event('cart:updated'));
     window.addEventListener('cart:updated', refreshCart);
 })();
 </script>

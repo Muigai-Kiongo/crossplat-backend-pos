@@ -511,7 +511,7 @@ $firstDeposit = array_key_first($depositMethods) ?: 'cash';
       </div>
 
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <div class="small text-muted">After payment, balance becomes: <strong id="balanceAfterOut">KES <?php echo number_format($customerBalance, 0); ?></strong></div>
+        <div class="small text-muted">, balance becomes: <strong id="balanceAfterOut">KES <?php echo number_format($customerBalance, 0); ?></strong></div>
         <button type="submit" class="btn btn-success btn-lg" id="custPayBtn"><i class="fas fa-check me-1"></i>Record payment</button>
       </div>
     </form>
@@ -918,7 +918,7 @@ $firstDeposit = array_key_first($depositMethods) ?: 'cash';
   function hide(){ menu.classList.remove('show'); }
   function money(n){ return 'KES ' + (Number(n)||0).toLocaleString('en-KE', {maximumFractionDigits:0}); }
   function goCustomer(name, id){
-    // Summary first (name + total balance). Wallet opens only after click with &open=1.
+    // Summary first (name + total balance). Wallet opens only  with &open=1.
     var url = '?customer=' + encodeURIComponent(name || '');
     if (id) url += '&customer_id=' + encodeURIComponent(id);
     if (preferDeposit) url += '&deposit=1';

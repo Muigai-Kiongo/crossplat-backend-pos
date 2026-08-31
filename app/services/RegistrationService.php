@@ -84,7 +84,7 @@ class RegistrationService
             if (!empty($in['phone'])) {
                 $this->db->prepare(
                     'INSERT INTO user_profiles (user_id, phone) VALUES (:u, :ph)
-                     ON DUPLICATE KEY UPDATE phone = VALUES(phone)'
+                     ON CONFLICT (user_id) DO UPDATE SET phone = EXCLUDED.phone'
                 )->execute([':u' => $userId, ':ph' => $in['phone']]);
             }
 

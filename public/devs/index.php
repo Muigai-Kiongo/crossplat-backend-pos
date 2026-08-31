@@ -116,7 +116,7 @@ session_start();
                                         
                                         <h6 class="mt-3">3. Test Login:</h6>
                                         <p>Test both user and admin accounts<br>
-                                        <small class="text-muted">→ Check sidebar to see your role after login</small></p>
+                                        <small class="text-muted">→ Check sidebar to see your role </small></p>
                                     </div>
                                 </div>
                             </div>

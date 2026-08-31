@@ -306,14 +306,14 @@ ob_start();
             </div>
             <div class="col-12 col-md-4">
               <label class="form-label small mb-1">Starts <span class="text-muted">(optional)</span></label>
-              <input name="offer_starts_at" type="datetime-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($_POST['offer_starts_at'] ?? ''); ?>">
+              <input name="offer_starts_at" type="TIMESTAMP-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($_POST['offer_starts_at'] ?? ''); ?>">
             </div>
             <div class="col-12 col-md-4">
               <label class="form-label small mb-1">Ends</label>
-              <input name="offer_ends_at" type="datetime-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($_POST['offer_ends_at'] ?? ''); ?>">
+              <input name="offer_ends_at" type="TIMESTAMP-local" class="form-control form-control-sm" value="<?php echo htmlspecialchars($_POST['offer_ends_at'] ?? ''); ?>">
             </div>
           </div>
-          <small class="text-muted d-block mt-1">After the end date, the till automatically returns to the normal selling price.</small>
+          <small class="text-muted d-block mt-1"> end date, the till automatically returns to the normal selling price.</small>
         </div>
       </div>
       <div class="col-md-6">

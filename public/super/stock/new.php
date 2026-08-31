@@ -395,11 +395,11 @@ ob_start();
             </div>
             <div class="col-12 col-sm-4">
               <label class="form-label small mb-1">Starts</label>
-              <input type="datetime-local" name="items[__I__][offer_starts_at]" class="form-control form-control-sm">
+              <input type="TIMESTAMP-local" name="items[__I__][offer_starts_at]" class="form-control form-control-sm">
             </div>
             <div class="col-12 col-sm-4">
               <label class="form-label small mb-1">Ends</label>
-              <input type="datetime-local" name="items[__I__][offer_ends_at]" class="form-control form-control-sm">
+              <input type="TIMESTAMP-local" name="items[__I__][offer_ends_at]" class="form-control form-control-sm">
             </div>
           </div>
         </div>

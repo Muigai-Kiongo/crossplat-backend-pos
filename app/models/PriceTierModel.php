@@ -74,15 +74,15 @@ class PriceTierModel extends Model
             try {
                 $this->db->exec(
                     "CREATE TABLE IF NOT EXISTS product_price_tiers (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        id SERIAL PRIMARY KEY,
                         tenant_id INT NOT NULL,
                         product_id INT NOT NULL,
                         min_qty DECIMAL(12,2) NOT NULL DEFAULT 1.00,
                         max_qty DECIMAL(12,2) NULL,
                         unit_price DECIMAL(12,2) NOT NULL,
                         label VARCHAR(80) NULL,
-                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                         KEY idx_tier_product (tenant_id, product_id, min_qty)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
                 );

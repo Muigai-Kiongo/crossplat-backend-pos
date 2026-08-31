@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$connectionError && $schemaReady) 
 
             $stmt = $pdo->prepare(
                 'INSERT INTO users (tenant_id, username, email, password_hash, role_id, is_active, email_verified, must_reset_password)
-                 VALUES (?, ?, ?, ?, ?, 1, 1, 0)'
+                 VALUES (?, ?, ?, ?, ?, TRUE, TRUE, FALSE)'
             );
             $stmt->execute([
                 $tenantId,
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$connectionError && $schemaReady) 
             $profile = $pdo->prepare(
                 'INSERT INTO user_profiles (user_id, first_name, last_name, phone)
                  VALUES (?, ?, ?, ?)
-                 ON DUPLICATE KEY UPDATE first_name = VALUES(first_name), last_name = VALUES(last_name), phone = VALUES(phone)'
+                 ON CONFLICT (user_id) DO UPDATE SET first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, phone = EXCLUDED.phone'
             );
             $profile->execute([$ownerId, $firstName, $lastName, $old['phone'] !== '' ? $old['phone'] : null]);
 

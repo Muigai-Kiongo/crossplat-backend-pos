@@ -9,7 +9,7 @@ require_once __DIR__ . '/helpers/PathConfig.php';
 // The shop is in Kenya — fix this explicitly rather than trusting the host's
 // OS timezone (which PHP defaults to UTC from anyway when unset). Offers,
 // attendance day-boundaries, and every other "is this timestamp now/today"
-// check compare a PHP time() against a MySQL DATETIME that was entered in
+// check compare a PHP time() against a MySQL TIMESTAMP that was entered in
 // the browser as local wall-clock time, so PHP and MySQL must agree — see
 // Database::pdo()'s matching `SET time_zone`.
 date_default_timezone_set('Africa/Nairobi');

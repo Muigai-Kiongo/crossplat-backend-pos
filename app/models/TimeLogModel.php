@@ -7,7 +7,7 @@
 // Rule: one clock-in per calendar day, unless the owner authorizes another
 // (staff_reclock_authorizations — a one-time slip, consumed on use). A
 // clock-in left open from a previous day (forgotten clock-out) is
-// auto-closed the next time this person clocks in, flagged `auto_closed`,
+// auto-closed the next time this person clocks in, flagged "auto_closed",
 // so it never silently reads as "still active" and never blocks the new day.
 namespace Models;
 
@@ -59,33 +59,33 @@ class TimeLogModel extends Model
     private function ensureSchema(): void
     {
         try {
-            $this->db->query("SELECT 1 FROM `staff_time_logs` LIMIT 1");
+            $this->db->query("SELECT 1 FROM "staff_time_logs" LIMIT 1");
         } catch (\PDOException $e) {
-            $this->db->exec("CREATE TABLE IF NOT EXISTS `staff_time_logs` (
-                `id` INT NOT NULL AUTO_INCREMENT,
-                `tenant_id` INT NOT NULL,
-                `user_id` INT NOT NULL,
-                `clock_in_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `clock_out_at` DATETIME NULL DEFAULT NULL,
-                `auto_closed` TINYINT(1) NOT NULL DEFAULT 0,
-                PRIMARY KEY (`id`),
-                KEY `idx_stafflog_tenant_user` (`tenant_id`, `user_id`),
-                KEY `idx_stafflog_clockin` (`clock_in_at`)
+            $this->db->exec("CREATE TABLE IF NOT EXISTS "staff_time_logs" (
+                "id" SERIAL,
+                "tenant_id" INT NOT NULL,
+                "user_id" INT NOT NULL,
+                "clock_in_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                "clock_out_at" TIMESTAMP NULL DEFAULT NULL,
+                "auto_closed" TINYINT(1) NOT NULL DEFAULT 0,
+                PRIMARY KEY ("id"),
+                KEY "idx_stafflog_tenant_user" ("tenant_id", "user_id"),
+                KEY "idx_stafflog_clockin" ("clock_in_at")
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         }
 
         try {
-            $this->db->query("SELECT 1 FROM `staff_reclock_authorizations` LIMIT 1");
+            $this->db->query("SELECT 1 FROM "staff_reclock_authorizations" LIMIT 1");
         } catch (\PDOException $e) {
-            $this->db->exec("CREATE TABLE IF NOT EXISTS `staff_reclock_authorizations` (
-                `id` INT NOT NULL AUTO_INCREMENT,
-                `tenant_id` INT NOT NULL,
-                `user_id` INT NOT NULL,
-                `authorized_by` INT NOT NULL,
-                `authorized_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `used_at` DATETIME NULL DEFAULT NULL,
-                PRIMARY KEY (`id`),
-                KEY `idx_reclock_user` (`tenant_id`, `user_id`, `used_at`)
+            $this->db->exec("CREATE TABLE IF NOT EXISTS "staff_reclock_authorizations" (
+                "id" SERIAL,
+                "tenant_id" INT NOT NULL,
+                "user_id" INT NOT NULL,
+                "authorized_by" INT NOT NULL,
+                "authorized_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                "used_at" TIMESTAMP NULL DEFAULT NULL,
+                PRIMARY KEY ("id"),
+                KEY "idx_reclock_user" ("tenant_id", "user_id", "used_at")
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         }
     }
@@ -172,9 +172,9 @@ class TimeLogModel extends Model
         return true;
     }
 
-    private function dateOf(string $datetime): string
+    private function dateOf(string $TIMESTAMP): string
     {
-        return date('Y-m-d', strtotime($datetime));
+        return date('Y-m-d', strtotime($TIMESTAMP));
     }
 
     private function lastLog(int $tenantId, int $userId): ?array

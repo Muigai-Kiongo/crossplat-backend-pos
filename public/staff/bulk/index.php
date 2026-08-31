@@ -210,7 +210,7 @@ ob_start();
       </div>
       <div class="d-flex justify-content-between fs-5 fw-bold border-top pt-3 mb-3"><span>Total</span><span id="totalOut">KES 0</span></div>
       <div class="mb-3">
-        <label class="form-label small fw-semibold">Email after creating</label>
+        <label class="form-label small fw-semibold">Email </label>
         <label class="form-check"><input class="form-check-input" type="checkbox" name="send_docs[]" value="invoice" checked> Invoice</label>
         <label class="form-check"><input class="form-check-input" type="checkbox" name="send_docs[]" value="delivery" checked> Delivery note</label>
         <label class="form-check"><input class="form-check-input" type="checkbox" name="send_docs[]" value="thanks"> Thank-you note</label>

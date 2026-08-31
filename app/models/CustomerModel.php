@@ -202,7 +202,7 @@ class CustomerModel extends Model
             try {
                 $this->db->exec(
                     "CREATE TABLE IF NOT EXISTS customers (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        id SERIAL PRIMARY KEY,
                         tenant_id INT NOT NULL,
                         name VARCHAR(160) NOT NULL,
                         phone VARCHAR(30) NULL,
@@ -215,8 +215,8 @@ class CustomerModel extends Model
                         loyalty_tier ENUM('standard','silver','gold','platinum') NOT NULL DEFAULT 'standard',
                         notes TEXT NULL,
                         status ENUM('active','inactive') NOT NULL DEFAULT 'active',
-                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                         KEY idx_cust_tenant (tenant_id)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
                 );
@@ -230,7 +230,7 @@ class CustomerModel extends Model
             );
             $st->execute();
             if ((int) $st->fetchColumn() === 0) {
-                $this->db->exec('ALTER TABLE customers ADD COLUMN credit_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER credit_limit');
+                $this->db->exec('ALTER TABLE customers ADD COLUMN credit_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00 ');
             }
         } catch (\PDOException $ignored) {
         }

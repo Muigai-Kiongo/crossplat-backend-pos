@@ -603,7 +603,7 @@ class StoreProductModel extends Model
     {
         $this->db->exec(
             "CREATE TABLE IF NOT EXISTS store_products (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 product_id INT NULL,
                 transferred_invoice_id INT NULL,
@@ -625,45 +625,45 @@ class StoreProductModel extends Model
                 retail_price DECIMAL(12,2) NOT NULL DEFAULT 0.00,
                 wholesale_price DECIMAL(12,2) NOT NULL DEFAULT 0.00,
                 offer_price DECIMAL(12,2) NULL,
-                offer_starts_at DATETIME NULL,
-                offer_ends_at DATETIME NULL,
+                offer_starts_at TIMESTAMP NULL,
+                offer_ends_at TIMESTAMP NULL,
                 image_path VARCHAR(255) NULL,
                 notes VARCHAR(255) NULL,
                 status ENUM('stored','transferred') NOT NULL DEFAULT 'stored',
                 created_by INT NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                transferred_at DATETIME NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                transferred_at TIMESTAMP NULL,
                 KEY idx_store_products_tenant_status (tenant_id, status),
                 KEY idx_store_products_invoice (tenant_id, transferred_invoice_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
         );
-        $this->ensureColumn('store_products', 'supplier_id', "ALTER TABLE `store_products` ADD COLUMN `supplier_id` INT NULL AFTER `brand_id`");
-        $this->ensureColumn('store_products', 'package_unit', "ALTER TABLE `store_products` ADD COLUMN `package_unit` VARCHAR(20) NULL AFTER `unit`");
-        $this->ensureColumn('store_products', 'package_quantity', "ALTER TABLE `store_products` ADD COLUMN `package_quantity` DECIMAL(12,2) NULL AFTER `package_unit`");
-        $this->ensureColumn('store_products', 'units_per_package', "ALTER TABLE `store_products` ADD COLUMN `units_per_package` DECIMAL(12,2) NULL AFTER `package_quantity`");
-        $this->ensureColumn('store_products', 'package_price', "ALTER TABLE `store_products` ADD COLUMN `package_price` DECIMAL(12,2) NULL AFTER `units_per_package`");
-        $this->ensureColumn('store_products', 'package_buying_price', "ALTER TABLE `store_products` ADD COLUMN `package_buying_price` DECIMAL(12,2) NULL AFTER `buying_price`");
-        $this->ensureColumn('store_products', 'offer_price', "ALTER TABLE `store_products` ADD COLUMN `offer_price` DECIMAL(12,2) NULL AFTER `wholesale_price`");
-        $this->ensureColumn('store_products', 'offer_starts_at', "ALTER TABLE `store_products` ADD COLUMN `offer_starts_at` DATETIME NULL AFTER `offer_price`");
-        $this->ensureColumn('store_products', 'offer_ends_at', "ALTER TABLE `store_products` ADD COLUMN `offer_ends_at` DATETIME NULL AFTER `offer_starts_at`");
-        $this->ensureColumn('store_products', 'image_path', "ALTER TABLE `store_products` ADD COLUMN `image_path` VARCHAR(255) NULL AFTER `offer_ends_at`");
+        $this->ensureColumn('store_products', 'supplier_id', "ALTER TABLE "store_products" ADD COLUMN "supplier_id" INT NULL ");
+        $this->ensureColumn('store_products', 'package_unit', "ALTER TABLE "store_products" ADD COLUMN "package_unit" VARCHAR(20) NULL ");
+        $this->ensureColumn('store_products', 'package_quantity', "ALTER TABLE "store_products" ADD COLUMN "package_quantity" DECIMAL(12,2) NULL ");
+        $this->ensureColumn('store_products', 'units_per_package', "ALTER TABLE "store_products" ADD COLUMN "units_per_package" DECIMAL(12,2) NULL ");
+        $this->ensureColumn('store_products', 'package_price', "ALTER TABLE "store_products" ADD COLUMN "package_price" DECIMAL(12,2) NULL ");
+        $this->ensureColumn('store_products', 'package_buying_price', "ALTER TABLE "store_products" ADD COLUMN "package_buying_price" DECIMAL(12,2) NULL ");
+        $this->ensureColumn('store_products', 'offer_price', "ALTER TABLE "store_products" ADD COLUMN "offer_price" DECIMAL(12,2) NULL ");
+        $this->ensureColumn('store_products', 'offer_starts_at', "ALTER TABLE "store_products" ADD COLUMN "offer_starts_at" TIMESTAMP NULL ");
+        $this->ensureColumn('store_products', 'offer_ends_at', "ALTER TABLE "store_products" ADD COLUMN "offer_ends_at" TIMESTAMP NULL ");
+        $this->ensureColumn('store_products', 'image_path', "ALTER TABLE "store_products" ADD COLUMN "image_path" VARCHAR(255) NULL ");
         $this->db->exec(
             "CREATE TABLE IF NOT EXISTS store_invoices (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 invoice_number VARCHAR(32) NOT NULL,
                 invoice_to VARCHAR(160) NULL,
                 total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
                 notes VARCHAR(255) NULL,
                 created_by INT NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE KEY uq_store_invoice (tenant_id, invoice_number),
                 KEY idx_store_invoice_tenant (tenant_id, created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
         );
         $this->db->exec(
             "CREATE TABLE IF NOT EXISTS store_invoice_items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 tenant_id INT NOT NULL,
                 invoice_id INT NOT NULL,
                 store_product_id INT NOT NULL,
@@ -680,10 +680,10 @@ class StoreProductModel extends Model
                 KEY idx_store_invoice_items_invoice (tenant_id, invoice_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
         );
-        $this->ensureColumn('store_invoice_items', 'package_unit', "ALTER TABLE `store_invoice_items` ADD COLUMN `package_unit` VARCHAR(20) NULL AFTER `unit`");
-        $this->ensureColumn('store_invoice_items', 'package_quantity', "ALTER TABLE `store_invoice_items` ADD COLUMN `package_quantity` DECIMAL(12,2) NULL AFTER `package_unit`");
-        $this->ensureColumn('store_invoice_items', 'units_per_package', "ALTER TABLE `store_invoice_items` ADD COLUMN `units_per_package` DECIMAL(12,2) NULL AFTER `package_quantity`");
-        $this->ensureColumn('store_invoice_items', 'package_price', "ALTER TABLE `store_invoice_items` ADD COLUMN `package_price` DECIMAL(12,2) NULL AFTER `units_per_package`");
+        $this->ensureColumn('store_invoice_items', 'package_unit', "ALTER TABLE "store_invoice_items" ADD COLUMN "package_unit" VARCHAR(20) NULL ");
+        $this->ensureColumn('store_invoice_items', 'package_quantity', "ALTER TABLE "store_invoice_items" ADD COLUMN "package_quantity" DECIMAL(12,2) NULL ");
+        $this->ensureColumn('store_invoice_items', 'units_per_package', "ALTER TABLE "store_invoice_items" ADD COLUMN "units_per_package" DECIMAL(12,2) NULL ");
+        $this->ensureColumn('store_invoice_items', 'package_price', "ALTER TABLE "store_invoice_items" ADD COLUMN "package_price" DECIMAL(12,2) NULL ");
     }
 
     private function ensureColumn(string $table, string $column, string $sql): void

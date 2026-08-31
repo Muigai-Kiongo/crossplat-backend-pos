@@ -47,7 +47,7 @@ function build_admin_credentials_email(string $name, string $email, string $pass
         Log in to your dashboard
       </a>
       <p style="margin:20px 0 0;color:#94a3b8;font-size:13px;line-height:1.5">
-        We recommend changing your password after you log in — use "Forgot password" on the login page any time; it'll email you a one-time code to confirm it's you.<br>
+        We recommend changing your password  log in — use "Forgot password" on the login page any time; it'll email you a one-time code to confirm it's you.<br>
         If you weren't expecting this account, you can ignore this email.
       </p>
     </div>
@@ -60,7 +60,7 @@ HTML;
         . "Email:    {$email}\n"
         . "Password: {$password}\n\n"
         . "Log in: {$loginUrl}\n\n"
-        . "We recommend changing your password after you log in (use \"Forgot password\" on the login page — it emails a one-time code).";
+        . "We recommend changing your password  log in (use \"Forgot password\" on the login page — it emails a one-time code).";
 
     return ['subject' => $subject, 'html' => $html, 'text' => $text];
 }

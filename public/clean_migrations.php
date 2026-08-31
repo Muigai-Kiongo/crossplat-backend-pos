@@ -1,6 +1,6 @@
 <?php
 // public/clean_migrations.php
-// Admin cleanup/repair tool for stale credit invoices/orders left open after payment.
+// Admin cleanup/repair tool for stale credit invoices/orders left open .
 require_once __DIR__ . '/../app/app.php';
 PageGuard::tenant();
 

@@ -262,7 +262,7 @@ ob_start();
         <div class="text-muted small text-uppercase fw-semibold mb-1">Net profit · <?php echo htmlspecialchars($periodLabel); ?></div>
         <?php if ($profitAvailable): ?>
           <div class="h5 mb-0 fw-bold <?php echo $netProfit < 0 ? 'text-danger' : 'text-success'; ?>">KES <?php echo number_format($netProfit,0); ?></div>
-          <div class="text-muted" style="font-size:.7rem;">Revenue − cost of goods, after discounts</div>
+          <div class="text-muted" style="font-size:.7rem;">Revenue − cost of goods, </div>
         <?php else: ?>
           <div class="h5 mb-0 text-muted">—</div>
           <div class="text-danger" style="font-size:.7rem;"><?php echo $profitReason === 'no_column' ? 'No product cost recorded' : 'Profit unavailable'; ?></div>
@@ -303,7 +303,7 @@ ob_start();
   <div class="col-6 col-md-3">
     <div class="card border-0 shadow-sm" style="border-radius:14px;">
       <div class="card-body p-3">
-        <div class="text-muted small text-uppercase fw-semibold mb-1">Profit after damage</div>
+        <div class="text-muted small text-uppercase fw-semibold mb-1">Profit </div>
         <div class="h5 mb-0 fw-bold <?php echo $profitAfterDamage < 0 ? 'text-danger' : 'text-success'; ?>">KES <?php echo number_format($profitAfterDamage, 0); ?></div>
         <div class="text-muted" style="font-size:.7rem;">Net profit − damaged stock loss</div>
       </div>

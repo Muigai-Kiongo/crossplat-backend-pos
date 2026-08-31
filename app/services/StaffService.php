@@ -217,7 +217,7 @@ class StaffService
         $up  = $this->db->prepare(
             "INSERT INTO user_permissions (tenant_id, user_id, capability, effect)
              VALUES (?,?,?,?)
-             ON DUPLICATE KEY UPDATE effect = VALUES(effect)"
+             ON CONFLICT (user_id, capability) DO UPDATE SET effect = EXCLUDED.effect"
         );
         $this->db->beginTransaction();
         try {

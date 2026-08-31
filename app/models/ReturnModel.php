@@ -329,7 +329,7 @@ class ReturnModel extends Model
         try {
             $this->db->exec(
                 "CREATE TABLE IF NOT EXISTS product_returns (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    id SERIAL PRIMARY KEY,
                     tenant_id INT NOT NULL,
                     source_type ENUM('sale','order') NOT NULL,
                     source_id INT NOT NULL,
@@ -343,17 +343,17 @@ class ReturnModel extends Model
                     reason VARCHAR(120) NULL,
                     note VARCHAR(255) NULL,
                     processed_by INT NULL,
-                    migrated_at DATETIME NULL,
+                    migrated_at TIMESTAMP NULL,
                     migrated_by INT NULL,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     KEY idx_returns_source (tenant_id, source_type, source_id),
                     KEY idx_returns_item (tenant_id, source_type, source_item_id),
                     KEY idx_returns_product (tenant_id, product_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
             );
         } catch (\PDOException $ignored) {}
-        $this->ensureColumn('product_returns', 'migrated_at', "ALTER TABLE product_returns ADD COLUMN migrated_at DATETIME NULL AFTER processed_by");
-        $this->ensureColumn('product_returns', 'migrated_by', "ALTER TABLE product_returns ADD COLUMN migrated_by INT NULL AFTER migrated_at");
+        $this->ensureColumn('product_returns', 'migrated_at', "ALTER TABLE product_returns ADD COLUMN migrated_at TIMESTAMP NULL ");
+        $this->ensureColumn('product_returns', 'migrated_by', "ALTER TABLE product_returns ADD COLUMN migrated_by INT NULL ");
     }
 
     private function ensureColumn(string $table, string $column, string $sql): void

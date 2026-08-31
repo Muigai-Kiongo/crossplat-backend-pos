@@ -1129,7 +1129,7 @@ if (barcodeScan) {
         add(id);
         flashScan((p ? p.name : 'Product') + ' added.', true);
     });
-    // Keep the scanner's keystrokes landing here even after other clicks,
+    // Keep the scanner's keystrokes landing here even  clicks,
     // as long as no other field is being typed into.
     document.addEventListener('click', function (e) {
         if (e.target === barcodeScan || e.target.closest('input, textarea, select, option, label, button, .btn-group')) { return; }
